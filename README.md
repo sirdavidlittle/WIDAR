@@ -1,93 +1,64 @@
-# widar-v1
+# Widar I
+(A Helpful Handheld Wifi-Radar)
+
+
+– Think of a Geiger counter for WIFI, with location and history capabilities
+
+## Summary:
+A handheld device that measures signal strength continuously while travelling through a WIFI network distributed across one or multiple routers. The device would be configured to test a specific WIFI channel's coverage.  Any measurements found would be stored on the handheld device on an SSD card (or similar memory device) and synced to a remote server.
+A web API would allow measurements to be viewed as a heatmap to indicate signal strength
+Applications
+
+### Potential Uses: 
+Help network admins identify weak spots in wifi coverage for signal booster placement.
+
+### Widar vs Existing Software
+While WiFi heatmap technologies already exist (such as this optimized wireless network mapper), Widar is unique in that it uses live data. Existing market solutions rely on digital models of buildings for approximating coverage. It would be costly for non-profit organizations to design industry-grade models just to test their WiFi! Widar solves this by generating the floorplan itself through advanced laser scanning technology.
+
+### Questions This IoT Could Help Answer
+- How does building material affect wifi signal propagation?
+- How does building geometry affect wifi signal propagation?
+- What is the ideal placement pattern for wifi routers?
+
+
+## Required Features and Technology:
+### Feature I: Where am I? (Scanning & Mapping)
+- (Simultaneous Localization and Mapping) SLAM
+
+    - Small portable computer capable of running hector_slam 2D via the ROS melodic operating system (based on Ubuntu 18)
+        * “Unlike traditional grid-based methods (like Gmapping) that rely heavily on a robot's wheel odometry, Hector SLAM relies purely on fast LiDAR scan matching at the full update rate of the sensor.” (Hector SLAM)
+Handheld Mapping System in the RoboCup 2011 Rescue Arena
+Hector SLAM recommends 4GB of RAM for ideal operation
+- SLAM technology uses LiDAR to identify planar surfaces and construct a mapping:
+
+[!2D map]
+*2D obstacle map generated with hector_slam*
+- Why not GPS?
+    - GPS uses line-of-site triangulation. GPS cannot work indoors and has a high margin of error (+/- 30 feet) 
+    * GPS supplies only a location, it cannot generate a collision map. A pre-fabricated floorplan map would be required.
+
+### Feature II: Where have I been? (Data Storage)
+* Hector SLAM and Wifi scanner saves the scan to an SD card
+    * 32GB recommended for large areas
+    * Data Collected:
+        * SLAM 2D scan of mapped area (.pgm)
+        * Trace of path taken by Widar operator (???)
+        * Wifi strength datapoints (.csv)
+Transfer SD to laptop for upload or upload directly from Widar.
 
 
 
-## Getting started
+### Feature III: Where is the WiFi good? (Data Analysis)
+* WiFi card continuously monitors signal strength as 2D points.
+* Each point relates to a location in SLAM map
+* Adjustable sampling rate: more precise heatmap -> larger scan files
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### Feature IV: What does WiFi look like? (User-Friendly Visualization)
+* Sync data to a remote webserver which generates and hosts interactive WiFi map.
+* Using HeatMapper 2 API to generate a heatmap from the discretized WiFi points.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+*A simulated wifi heatmap. Unlike Widar I which gathers live data, a simulated heatmap generates a prediction based on digital floor layouts.*
+* Use SVG.js with the floorplan scan to display a clean, easy to navigate map for frontend Web.
+* Use hotspot algorithms to identify areas of high/low connectivity.
 
-## Add your files
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/dlittle241/widar-v1.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-* [Set up project integrations](https://gitlab.com/dlittle241/widar-v1/-/settings/integrations)
-
-## Collaborate with your team
-
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
