@@ -30,7 +30,9 @@ While WiFi heatmap technologies already exist (such as this optimized wireless n
 Handheld Mapping System in the RoboCup 2011 Rescue Arena
 Hector SLAM recommends 4GB of RAM for ideal operation
 - SLAM technology uses LiDAR to identify planar surfaces and construct a mapping:
-[!2D Map](SLAM_map.png)
+
+
+![2D Map](SLAM_map.png)
 *2D obstacle map generated with hector_slam*
 - Why not GPS?
     - GPS uses line-of-site triangulation. GPS cannot work indoors and has a high margin of error (+/- 30 feet) 
