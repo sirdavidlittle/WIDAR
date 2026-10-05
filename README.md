@@ -31,7 +31,7 @@ Handheld Mapping System in the RoboCup 2011 Rescue Arena
 Hector SLAM recommends 4GB of RAM for ideal operation
 - SLAM technology uses LiDAR to identify planar surfaces and construct a mapping:
 
-[!2D map]
+![2D map](SlamMap.png)
 *2D obstacle map generated with hector_slam*
 - Why not GPS?
     - GPS uses line-of-site triangulation. GPS cannot work indoors and has a high margin of error (+/- 30 feet) 
@@ -56,7 +56,7 @@ Transfer SD to laptop for upload or upload directly from Widar.
 ### Feature IV: What does WiFi look like? (User-Friendly Visualization)
 * Sync data to a remote webserver which generates and hosts interactive WiFi map.
 * Using HeatMapper 2 API to generate a heatmap from the discretized WiFi points.
-
+![2D HeatMap](heatmap.png)
 *A simulated wifi heatmap. Unlike Widar I which gathers live data, a simulated heatmap generates a prediction based on digital floor layouts.*
 * Use SVG.js with the floorplan scan to display a clean, easy to navigate map for frontend Web.
 * Use hotspot algorithms to identify areas of high/low connectivity.
