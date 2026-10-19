@@ -4,12 +4,12 @@
 
 – Think of a Geiger counter for WIFI, with location and history capabilities
 
-## Summary:
-A handheld device that measures signal strength continuously while travelling through a WIFI network distributed across one or multiple routers. The device would be configured to test a specific WIFI channel's coverage.  Any measurements found would be stored on the handheld device on an SSD card (or similar memory device) and synced to a remote server.
+## Summary
+A handheld device that measures signal strength continuously while traveling through a WIFI network distributed across one or multiple routers. The device would be configured to test a specific WIFI channel's coverage.  Any measurements found would be stored on the handheld device on an SSD card (or similar memory device) and synced to a remote server.
 A web API would allow measurements to be viewed as a heatmap to indicate signal strength
 Applications
 
-### Potential Uses: 
+### Potential Uses
 Help network admins identify weak spots in wifi coverage for signal booster placement.
 
 ### Widar vs Existing Software
@@ -49,17 +49,22 @@ Transfer SD to laptop for upload or upload directly from Widar.
 
 
 
-### Feature III: Where is the WiFi good? (Data Analysis)
+### Feature III: Where Is The WiFi Good? (Data Analysis)
 * WiFi card continuously monitors signal strength as 2D points.
 * Each point relates to a location in SLAM map
 * Adjustable sampling rate: more precise heatmap -> larger scan files
 
-### Feature IV: What does WiFi look like? (User-Friendly Visualization)
+### Feature IV: What Does WiFi Look Like? (User-Friendly Visualization)
 * Sync data to a remote webserver which generates and hosts interactive WiFi map.
 * Using HeatMapper 2 API to generate a heatmap from the discretized WiFi points.
-![2D HeatMap](HEATMAP.png)
+![2D HeatMap](HEATMAP.png)<br>
 *A simulated wifi heatmap. Unlike Widar I which gathers live data, a simulated heatmap generates a prediction based on digital floor layouts.*
 * Use SVG.js with the floorplan scan to display a clean, easy to navigate map for frontend Web.
 * Use hotspot algorithms to identify areas of high/low connectivity.
 
 
+## Full Stack Implementation
+The implementation of WIDAR is divided between handheld hardware (the WIDAR itself) and a web experience for examining WIDAR data 
+![WIDAR full stack implementation](WIDAR_diagram.png)<br>
+
+*
