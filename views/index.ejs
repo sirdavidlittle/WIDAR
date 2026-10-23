@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>WIDAR :: Home</title>
+  </head>
+  <body>
+    <% if (username) { %>
+      <h3> Welcome, <%- username %> </h3>
+    <%}%>
+    Home Page
+    <a href="/login">login</a>
+    <a href="/logout">logout</a>
+  </body>
+</html>
