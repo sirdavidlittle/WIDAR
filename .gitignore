@@ -1,5 +1,4 @@
 .idea
-diagram_assets/*
 node_modules/*
 data/*
 .env
