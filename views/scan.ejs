@@ -2,9 +2,16 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>WIDAR :: Scan</title>
+    <title>WIDAR :: Scan <%- scan.id %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="/img/favicon.ico">
   </head>
   <body>
-    viewing scan <%- scan_id %>
+    <h4> viewing scan <%= scan.name %></h4>
+
+
+    <canvas id="widar-frame"></canvas>
+    <script src="/js/widar.js"></script>
   </body>
 </html>

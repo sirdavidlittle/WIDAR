@@ -1,59 +1,35 @@
 const crypto = require('crypto');
+const TimedMapCache = require('./TimedMapCache')
 
 class TokenManager {
-  constructor({tokenLifespan, purgeInterval}) {
-    this.tokens = new Map()
-    this.tokenLifespan = tokenLifespan
-    this.purgeIntervalHandle = setInterval(() => this.purgeTokens(), purgeInterval)
+  constructor({tokenLifespan}) {
+    this._cache = new TimedMapCache(tokenLifespan);
   }
 
-  purgeTokens() {
-    for (const token of this.tokens.keys()) {
-      session = this.tokens.get(token)
-      if (this.isExpired(session)) {
-        this.tokens.delete(token)
-      }
-    }
+  [Symbol.iterator]() {
+    return this._cache[Symbol.iterator]
   }
 
   getUserByToken(token) {
-    if (!token) {
-      return null
-    }
-
-    return this.tokens.get(token)?.user
+    return this._cache.get(token)
   }
 
   generateToken(user) {
-    let uuid;
-    do {
-      uuid = crypto.randomUUID({disableEntropyCache:true})
-    } while (this.tokens.has(uuid))
-    const token = Buffer.from(uuid, "utf8").toString("base64");
-    this.tokens.set(token, {date:Date.now(), user: user})
-    return token;
+    const uuid = crypto.randomUUID({disableEntropyCache:true})
+    const encoded_uuid = Buffer.from(uuid, "utf8").toString("base64");
+
+    this._cache.insert(
+        encoded_uuid,
+        user,
+        this._cache.purgeInterval
+    );
+
+    return encoded_uuid;
   }
 
-  isExpired(session) {
-    return (Date.now() - session.date > this.tokenLifespan)
-  }
 
   isValid(token) {
-    if (!token) {
-      return false
-    }
-
-    const session = this.tokens.get(token)
-    if (!session) {
-      return false;
-    }
-
-    if (this.isExpired(session)) {
-      this.tokens.delete(token)
-      return false;
-    }
-
-    return true;
+    return this._cache.has(token);
   }
 }
 

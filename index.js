@@ -3,25 +3,48 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const TokenManager = require('./TokenManager.js')
-const ScanAssets = require('./ScanAssets.js')
 const ejs = require('ejs');
-//const ffmpeg = require('ffmpeg');
+const ffmpeg = require('ffmpeg');
+const timeunits = require('./timeunits.mjs');
+const ScanStore = require("./ScanStore");
 
-const HOURS =(hours)=> {
-  return 1000 * 60 * 60 * hours;
-}
 
 const app = express();
 const server = http.createServer(app);
-const tokenManager = new TokenManager({
-          tokenLifespan: HOURS(24),
-          purgeInterval: HOURS(12)
-        });
+
+const RelativeTimeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+const AbsoluteTimeFormatter =  new Intl.DateTimeFormat("en-US", {
+  month: "2-digit",
+  day: "2-digit",
+  year: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23"
+})
+
+// EJS functions
+app.locals.formatTimeAbsolute = (dateMS) => {
+  return AbsoluteTimeFormatter.format(dateMS)
+}
+
+app.locals.formatTimeRelative = (dateMS) => {
+  const now = Date.now()
+  const daysAgo = Math.floor((dateMS - now) / (1000 * 60 * 60 * 24));
+  return RelativeTimeFormatter.format(daysAgo, 'day')
+}
+
+const scanStore = new ScanStore({
+  scandir: "./data/scans",
+  scandata: "./data/meta.json"
+});
+
+const tokenManager = new TokenManager({tokenLifespan: timeunits.HOURS(6) });
 
 app.use((require("cors"))());
 app.use((require("cookie-parser"))());
 
-const scansPath = path.join(__dirname, process.env.DATA_DIR);
+// const scansPath = path.join(__dirname, process.env.DATA_DIR);
 
 // app.enable('view cache')
 app.disable('view cache')
@@ -42,7 +65,7 @@ const cookieOptions = {
 function verifyLogin(req) {
   const username = req.body?.username
   const password = req.body?.password
-  if (username && password == process.env.ADMIN_PASSWORD) {
+  if (username && password === process.env.ADMIN_PASSWORD) {
     return {valid: true, token:tokenManager.generateToken(username), username: username}
   }
   return {valid: false}
@@ -54,35 +77,67 @@ function loggedIn(req) {
 
 app.get('/', (req, res) => {
   username = tokenManager.getUserByToken(req.cookies?._token)
-  res.render('index', {username: username})
+  res.render('index', {
+    username: username,
+    isAdmin: !!username,
+    scans: scanStore
+  })
   // main page, display scans as cards
 });
 
 // data/file APIs
 app.get('/scan/:id', (req, res, next) => {
-  if (!req.params.id) {
+  const id = parseInt(req.params.id);
+
+  if (!id) {
     next()
   }
-  res.render('scan', {scan_id:req.params.id});
+
+  const scan = scanStore.getScanInfo(id)
+
+  if (!scan) {
+    res.status(404).send(`No such scan ${id}`)
+  } else {
+    res.render('scan', {
+      scan: scan
+    });
+  }
 });
 
-app.get('/scan/:id/:asset', (req, res) => {
-  assetName = ScanAssets[req.params.asset]
-  if (assetName) {
-    res.sendFile(path.join(scansPath, path.basename(req.params.id), assetName),
-    (err) => {
-      res.status(404).send()
-    });
-  } else {
-    res.status(400).send()
-  }
+app.get('/scan/:id/data', (req, res) => {
+  // const id = req.params.id;
+  // const data = scanStore.getScanData(id)
+  // TODO
+  res.status(501).send('???')
+});
+
+app.get('/scan/:id/img', (req, res) => {
+  // TODO
+  res.status(501).send('???')
+
+  // if (assetName) {
+  //   res.sendFile(path.join(scansPath, path.basename(req.params.id), assetName),
+  //   (err) => {
+  //     res.status(404).send()
+  //   });
+  // } else {
+  //   res.status(400).send()
+  // }
 });
 
 const loginEndpoint = (req, res) =>  {
+  const destinationURL = req.originalUrl.slice('/login'.length)
   if (loggedIn(req)) {
-    res.redirect(`/manage${req.originalUrl.slice('/login'.length)}`)
+    res.redirect(`/manage${destinationURL}`)
   } else {
-    res.render('login', {failed:req.query?.failed})
+    const destination = !destinationURL.length || destinationURL.length > 100 ?
+                                 null :
+                                 destinationURL.split(/\/+/);
+
+    res.render('login', {
+        failed: req.query?.failed,
+        destination: destination,
+      })
   }
 }
 
@@ -104,7 +159,6 @@ app.get('/logout', (req, res) => {
   res.clearCookie('_token').redirect("/")
 });
 
-
 app.get('/manage/*src', (req, res, next) => {
   if (loggedIn(req)) {
     next()
@@ -121,35 +175,43 @@ app.all('/manage/*src', (req, res, next) => {
   }
 });
 
-app.get('/manage', (req, res) =>  {
-  res.render('dashboard', {username: tokenManager.getUserByToken(req.cookies._token)})
-});
+function __scan_log(message, req) {
+  console.log(`${message} ${req.params.id} [${req.ip}]`)
+}
 
 app.post('/manage/:id', (req, res) => {
-  // no implement
-  console.log(`SUBMIT ${req.params.id}`)
+  __scan_log("Create", req)
+  res.status(201).send('created')
+  // create a new upload
 });
 
-app.post('/manage/:id/upload', (req, res) => {
+app.get('/manage/:id', (req, res) => {
+  __scan_log("fetch", req)
+  res.status(200).send('data')
+});
+
+app.patch('/manage/:id', (req, res) => {
   // no implement
-  console.log(`UPLOAD ASSET ${req.params.id}`)
+  __scan_log("Modify", req)
+  res.status(200).send('modified')
+  // create a new upload
 });
 
 app.delete('/manage/:id', (req, res) => {
-  // no implement
-  console.log(`DELETE ${req.params.id}`)
-});
+  __scan_log("(Unimplemented) Delete", req)
+  res.status(501).send('modified')
+  // delete a scan
+})
+
 
 app.get('/manage/*any', (req, res) =>  {
-  res.redirect('/manage ')
+  res.redirect('/?from=manage');
+  // redirect to index
 });
-
 
 app.get('*any', (req, res) => {
   res.redirect('/')
 });
-
-//|| admin ||//
 
 
 // Start Server

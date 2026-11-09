@@ -3,13 +3,46 @@
   <head>
     <meta charset="utf-8">
     <title>WIDAR :: Home</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Helpful handheld WiFi Radar">
   </head>
   <body>
-    <% if (username) { %>
-      <h3> Welcome, <%- username %> </h3>
-    <%}%>
-    Home Page
-    <a href="/login">login</a>
-    <a href="/logout">logout</a>
+    <header>
+      <nav>
+        <a href="/login">Manage</a>
+        <% if (isAdmin) { %>
+        <a href="/logout">Logout</a>
+        <% } %>
+      </nav>
+    </header>
+    <% if (isAdmin) { %>
+      <h3> Welcome, <%= username %> </h3>
+    <% } %>
+
+    <% function make_scan_card(scan) { %>
+      <div class="scan-card">
+        <a href="scan/<%- scan.id %>" class="scan-name"><%= scan.name%></a>
+        <span class="scan-desc"><%= scan.description%></span>
+        <div class="scan-dates">
+          <time class="relative"><%= formatTimeRelative(scan.time) %></time>
+          <time class="absolute"><%= formatTimeAbsolute(scan.time) %></time>
+        </div>
+        <% if (isAdmin) { %>
+        <div class="scan-options">
+          ADMIN OPTIONS
+        </div>
+        <% } %>
+      </div>
+    <% } %>
+
+    <main>
+      <% for (const scan of scans) { %>
+          <%- make_scan_card(scan) %>
+      <% } %>
+    </main>
+    <footer>WIDAR ® 2026</footer>
   </body>
 </html>
