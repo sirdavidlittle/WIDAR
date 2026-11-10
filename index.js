@@ -2,41 +2,35 @@ const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const TokenManager = require('./TokenManager.js')
-const ejs = require('ejs');
-const ffmpeg = require('ffmpeg');
-const timeunits = require('./timeunits.mjs');
-const ScanStore = require("./ScanStore");
+const TokenManager = require('./TokenManager')
 
+// const ejs = require('ejs');
+// const ffmpeg = require('ffmpeg');
+
+const timeunits = require('./timeunits.mjs');
+const injectAppLocals = require('./applocals');
+
+const ScanStore = require("./ScanStore");
+const { LRUCache } = require('lru-cache');
+const asyncfs = fs.promises
+
+
+const imageCache = new LRUCache({
+  max: 500,
+  ttl: timeunits.MINUTES(50)
+});
+
+const scanCachePolicy  = `public, max-age=${timeunits.HOURS(2)}, immutable`
 
 const app = express();
 const server = http.createServer(app);
 
-const RelativeTimeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-
-const AbsoluteTimeFormatter =  new Intl.DateTimeFormat("en-US", {
-  month: "2-digit",
-  day: "2-digit",
-  year: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23"
-})
-
-// EJS functions
-app.locals.formatTimeAbsolute = (dateMS) => {
-  return AbsoluteTimeFormatter.format(dateMS)
-}
-
-app.locals.formatTimeRelative = (dateMS) => {
-  const now = Date.now()
-  const daysAgo = Math.floor((dateMS - now) / (1000 * 60 * 60 * 24));
-  return RelativeTimeFormatter.format(daysAgo, 'day')
-}
+injectAppLocals(app)
 
 const scanStore = new ScanStore({
-  scandir: "./data/scans",
-  scandata: "./data/meta.json"
+  scandir: "data/scans",
+  scandata: "data/meta.json",
+  ttl: timeunits.HOURS(2),
 });
 
 const tokenManager = new TokenManager({tokenLifespan: timeunits.HOURS(6) });
@@ -44,12 +38,23 @@ const tokenManager = new TokenManager({tokenLifespan: timeunits.HOURS(6) });
 app.use((require("cors"))());
 app.use((require("cookie-parser"))());
 
-// const scansPath = path.join(__dirname, process.env.DATA_DIR);
+
 
 // app.enable('view cache')
 app.disable('view cache')
+
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.static('public', {
+  maxAge: '1d',
+  etag: true
+}));
+
+app.use(express.static('data/scans', {
+  maxAge: '1d', // Cache in browser for 1 day
+  etag: true    // Enable ETag validation
+}));
+
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.set('views', path.join(__dirname, 'views'));
@@ -87,7 +92,7 @@ app.get('/', (req, res) => {
 
 // data/file APIs
 app.get('/scan/:id', (req, res, next) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
 
   if (!id) {
     next()
@@ -104,56 +109,125 @@ app.get('/scan/:id', (req, res, next) => {
   }
 });
 
-app.get('/scan/:id/data', (req, res) => {
-  // const id = req.params.id;
-  // const data = scanStore.getScanData(id)
-  // TODO
-  res.status(501).send('???')
-});
-
-app.get('/scan/:id/img', (req, res) => {
-  // TODO
-  res.status(501).send('???')
-
-  // if (assetName) {
-  //   res.sendFile(path.join(scansPath, path.basename(req.params.id), assetName),
-  //   (err) => {
-  //     res.status(404).send()
-  //   });
-  // } else {
-  //   res.status(400).send()
-  // }
-});
-
-const loginEndpoint = (req, res) =>  {
-  const destinationURL = req.originalUrl.slice('/login'.length)
-  if (loggedIn(req)) {
-    res.redirect(`/manage${destinationURL}`)
+app.get('/scan/:id/*resource', (req, res, next) => {
+  const id = req.params.id;
+  if (!scanStore.scanExists(id)) {
+   res.status(404).send()
   } else {
-    const destination = !destinationURL.length || destinationURL.length > 100 ?
+    next()
+  }
+})
+
+async function imageHandler(id, resource, res) {
+  let buffer;
+  res.type('image/png');
+
+  if (imageCache.has(id)) {
+    console.log(`[cacher] from cache #${id}`)
+    buffer = imageCache.get(id);
+  } else {
+    try {
+      const scanPath = scanStore.scanPath(id, resource);
+      buffer = await asyncfs.readFile(scanPath);
+      imageCache.set(id, buffer);
+      console.log(`[cacher] from disk #${id}`)
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send(err)
+    }
+  }
+  res.set('Cache-Control', scanCachePolicy)
+  res.send(buffer)
+}
+
+app.get('/scan/:id/preview.png',
+    async (req, res)=>
+        await imageHandler(
+            req.params.id,
+            "preview.png",
+            res
+        )
+)
+
+app.get('/scan/:id/map.png',
+    async (req, res)=>
+        await imageHandler(
+            req.params.id,
+            "map.png",
+            res
+        )
+)
+
+app.get('/scan/:id/data', async (req, res) => {
+  const id = req.params.id;
+
+  const data = await scanStore.getScanData(id)
+
+  if (data==null) {
+    return res.status(404).send()
+  }
+
+  res.set('Cache-Control', scanCachePolicy)
+  res.type('application/json').send(data)
+});
+
+function replaceURLRoot(url, newRoot) {
+  const query_idx = url.indexOf('?')
+  const root_idx = url.indexOf('/', 1)
+  if (root_idx === -1) {
+    return newRoot;
+  }
+  return newRoot + url.substring(root_idx, query_idx === -1 ? url.length : query_idx)
+}
+
+function trimURLQuery(url) {
+  const query_idx = url.indexOf('?')
+  if (query_idx === -1) {
+    return url
+  }
+  return url.substring(0, query_idx)
+}
+
+const loginGetEndpoint = (req, res) =>  {
+  const destinationURL = replaceURLRoot(req.originalUrl, "/manage")
+  if (loggedIn(req)) {
+    res.redirect(destinationURL)
+  } else {
+    const destination = !destinationURL.length ||
+                                  destinationURL.length > 100 ?
                                  null :
                                  destinationURL.split(/\/+/);
 
     res.render('login', {
-        failed: req.query?.failed,
-        destination: destination,
+        failed: req.query.failed,
+        destItems: destination,
+        destURL: trimURLQuery(req.originalUrl),
       })
   }
 }
 
-app.get('/login', loginEndpoint)
-app.get('/login/*mgm', loginEndpoint)
 
-app.post('/login', (req, res) =>  {
-  verification = verifyLogin(req)
+const loginPostEndpoint = (req, res) =>  {
+  const verification = verifyLogin(req)
 
   if (verification.valid) {
     res.cookie('_token', verification.token, cookieOptions)
-    .redirect(`/manage${req.originalUrl.slice('/login'.length)}`)
+    res.redirect(replaceURLRoot(req.originalUrl, "/manage"))
   } else {
-    res.redirect('login?failed=1')
+
+    res.redirect(req.originalUrl + "?failed=1")
   }
-});
+}
+
+app.get('/about', (req, res) => {
+  res.render('about')
+})
+
+app.get('/login', loginGetEndpoint)
+app.get('/login/*a', loginGetEndpoint)
+
+app.post('/login/*a', loginPostEndpoint);
+app.post('/login', loginPostEndpoint);
 
 app.get('/logout', (req, res) => {
   res.clearCookie('_token').redirect("/")
@@ -163,9 +237,10 @@ app.get('/manage/*src', (req, res, next) => {
   if (loggedIn(req)) {
     next()
   } else {
-    res.redirect(`/login${req.originalUrl.slice('/manage'.length)}`);
+    res.redirect(replaceURLRoot(req.originalUrl, "/login"));
   }
 });
+
 
 app.all('/manage/*src', (req, res, next) => {
   if (loggedIn(req)) {
@@ -178,6 +253,10 @@ app.all('/manage/*src', (req, res, next) => {
 function __scan_log(message, req) {
   console.log(`${message} ${req.params.id} [${req.ip}]`)
 }
+
+app.get('/manage/upload', (req, res) => {
+  res.render('upload', {})
+})
 
 app.post('/manage/:id', (req, res) => {
   __scan_log("Create", req)
@@ -204,12 +283,12 @@ app.delete('/manage/:id', (req, res) => {
 })
 
 
-app.get('/manage/*any', (req, res) =>  {
+app.get('/manage/*a', (req, res) =>  {
   res.redirect('/?from=manage');
   // redirect to index
 });
 
-app.get('*any', (req, res) => {
+app.get('*a', (req, res) => {
   res.redirect('/')
 });
 

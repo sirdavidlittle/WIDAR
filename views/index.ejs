@@ -11,37 +11,54 @@
   </head>
   <body>
     <header>
+      <div class="title">
+        <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+        <p class="description">A Helpful handheld WiFi-Radar</p>
+      </div>
+      <!--break-->
       <nav>
-        <a href="/login">Manage</a>
-        <% if (isAdmin) { %>
+        <a href="/about">Who Are We?</a>
+        <% if (!isAdmin) { %>
+        <a href="/login">Login</a>
+        <% } else { %>
         <a href="/logout">Logout</a>
+        <a href="/upload">Upload A Scan</a>
         <% } %>
       </nav>
     </header>
+
     <% if (isAdmin) { %>
-      <h3> Welcome, <%= username %> </h3>
+      <h3> Welcome, <span class="admin-username"><%= username %></span> </h3>
     <% } %>
 
     <% function make_scan_card(scan) { %>
       <div class="scan-card">
-        <a href="scan/<%- scan.id %>" class="scan-name"><%= scan.name%></a>
-        <span class="scan-desc"><%= scan.description%></span>
+        <div class="scan-preview-background" style="background-image:url(<% previewImg(scan.id) %>);">
+          <a href="scan/<%- scan.id %>" class="scan-name"><%= scan.name%></a>
+          <span class="scan-desc"><%= scan.description%></span>
+        </div>
+
         <div class="scan-dates">
-          <time class="relative"><%= formatTimeRelative(scan.time) %></time>
-          <time class="absolute"><%= formatTimeAbsolute(scan.time) %></time>
+          <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
+          <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
         </div>
         <% if (isAdmin) { %>
         <div class="scan-options">
-          ADMIN OPTIONS
+          <button class="scan-manage"><a href="/manage/<%- scan.id %>">Manage</a></button>
         </div>
         <% } %>
+        <small class="scan-id">#<%-scan.id%></small>
       </div>
     <% } %>
 
     <main>
+      <h4>WiDAR Scans</h4>
+      <!-- grid display -->
+      <section class="scan-cards">
       <% for (const scan of scans) { %>
           <%- make_scan_card(scan) %>
       <% } %>
+      </section>
     </main>
     <footer>WIDAR ® 2026</footer>
   </body>

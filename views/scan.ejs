@@ -8,10 +8,36 @@
     <link rel="icon" href="/img/favicon.ico">
   </head>
   <body>
-    <h4> viewing scan <%= scan.name %></h4>
+  <header>
+    <div class="title">
+      <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+      <p class="description">A Helpful handheld WiFi-Radar</p>
+    </div>
+    <!--break-->
+    <nav class="condensed">
+        <a href="/">Home</a>
+    </nav>
+  </header>
+  <main>
 
+  <section class="widar-area">
+    <div class="widar-info">
+      <p class="widar-title"> <%= scan.name%></p>
+      <p class="widar-description"> <%= scan.description%></p>
+      <div class="scan-dates">
+        <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
+        <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
+      </div>
+    </div>
+    <div class="widar-sim">
+    <img src="<%- previewImg(scan.id) %>" alt="Preview image">
+    <canvas width="500px" height="500px" id="widar"></canvas>
+    </div>
+  </section>
+  </main>
 
-    <canvas id="widar-frame"></canvas>
-    <script src="/js/widar.js"></script>
+  <footer>WIDAR ® 2026</footer>
+
+  <script src="/js/widar.js"></script>
   </body>
 </html>

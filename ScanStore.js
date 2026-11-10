@@ -4,10 +4,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 const asyncfs = fs.promises
 
+// const READINGS_NAME = 'wifi_readings.json'
+const READINGS_NAME = 'session.json'
+
 class ScanStore {
-    constructor({scandir, scandata}) {
+    constructor({scandir, scandata, ttl}) {
         this.scandir = scandir;
         this.scandata = scandata;
+        this.ttl = ttl
         let scans;
 
         try {
@@ -22,7 +26,7 @@ class ScanStore {
         for (const scan of scans) {
             this.scanMeta.set(scan.id, scan)
         }
-        this.dataCache = new TimedMapCache( timeunits.HOURS(1) )
+        this.dataCache = new TimedMapCache( ttl )
     }
 
     [Symbol.iterator]() {
@@ -49,7 +53,7 @@ class ScanStore {
     }
 
     scanExists(id) {
-        return !id && this.scanIDs.has(id)
+        return id && this.scanIDs.has(id)
     }
 
     async removeScanFromDisk(id) {
@@ -61,7 +65,7 @@ class ScanStore {
     }
 
     async loadScanFromDisk(id) {
-        return await asyncfs.readFile(this.scanPath(id, "session.json"), "utf8")
+        return await asyncfs.readFile(this.scanPath(id, READINGS_NAME), "utf8")
     }
 
     async getScanData(id) {             // possibility to load from disk
@@ -75,7 +79,7 @@ class ScanStore {
                     console.error(e)
                     return null
                 }
-                this.dataCache.insert(id, data, timeunits.MINUTES(45))
+                this.dataCache.insert(id, data, this.ttl)
                 return data
             }
         }

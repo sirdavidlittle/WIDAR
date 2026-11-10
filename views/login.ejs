@@ -9,25 +9,38 @@
   </head>
   <body>
     <header>
+      <div class="title">
+        <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+      </div>
+      <div class="login-path">
       Login
-      <% if (destination) { %>
-        <% for (const item of destination) { %>
+      <% if (destItems) { %>
+        <% for (const item of destItems) { %>
           <span class="arrow">&rarr;</span> <%= item%>
         <% } %>
       <% } %>
-
+      </div>
     </header>
 
-    <% if (failed) {%>
-      <h4> Login Failed </h4>
-    <% } %>
     <main>
-    <fieldset>
-      <img src="/img/widar.jpg" width="64px">
-      <legend>Login</legend>
-      <form action="/login" method="POST">
-        <input required type="text" name="username" placeholder="username"><br>
-        <input required type="password" name="password" placeholder="password">
+      <% if (failed) { %>
+        <h4 class="login-status"> Login Failed </h4>
+      <% } %>
+
+    <fieldset class="login-form">
+      <!-- corporate splash centered above login -->
+      <img src="/img/widar.jpg" width="130px">
+      <legend>Administrator Login</legend>
+      <form action="<%=destURL%>" method="POST">
+        <label class="login-item">
+          Username
+          <input required type="text" name="username" placeholder="username">
+        </label>
+        <br>
+        <label class="login-item">
+          Password
+          <input required type="password" name="password" placeholder="password">
+        </label>
         <input type="submit">
       </form>
     </fieldset>
