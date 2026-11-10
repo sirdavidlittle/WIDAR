@@ -1,0 +1,56 @@
+.sim-canvas {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    border:1px solid var(--bg-color);
+}
+
+.sim-area {
+
+}
+
+.widar-info {
+    width: fit-content;
+}
+
+
+/* --- Scan Detail Area --- */
+.widar-area {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.widar-info {
+    flex: .8;
+    min-width: 250px;
+}
+
+.widar-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: capitalize;
+    margin-bottom: var(--spacing-xs);
+}
+
+.widar-description {
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: var(--spacing-md);
+}
+
+.widar-sim {
+    flex: 2;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+canvas#sim {
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+    max-width: 100%;
+    height: auto; /* maintain aspect ratio if width is constrained by CSS */
+}

@@ -5,11 +5,13 @@
     <title>WIDAR :: Scan <%- scan.id %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/sim.css">
     <link rel="icon" href="/img/favicon.ico">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
   </head>
   <body>
   <header>
-    <div class="title">
+    <div class="title widar">
       <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
       <p class="description">A Helpful handheld WiFi-Radar</p>
     </div>
@@ -29,15 +31,15 @@
         <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
       </div>
     </div>
-    <div class="widar-sim">
-    <img src="<%- previewImg(scan.id) %>" alt="Preview image">
-    <canvas width="500px" height="500px" id="widar"></canvas>
+
+    <div class="sim-area">
+    <canvas style="background-image:url(<%- previewImage(scan.id) %>);" width="500px" height="500px" class="sim-canvas" id="sim"></canvas>
     </div>
   </section>
   </main>
 
   <footer>WIDAR ® 2026</footer>
 
-  <script src="/js/widar.js"></script>
+  <script src="/js/widar_sim.js"></script>
   </body>
 </html>

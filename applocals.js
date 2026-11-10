@@ -17,7 +17,7 @@ const _functions = {
         return AbsoluteTimeFormatter.format(dateMS)
     },
 
-    previewImg (id) {
+    previewImage(id) {
         return `/scan/${id}/preview.png`
     },
     formatTimeRelative(dateMS) {

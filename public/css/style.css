@@ -1,0 +1,491 @@
+body,html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+/*
+   WIDAR Stylesheet
+   Theme: Semi-dark, Sleek, Professional
+*/
+
+/* -- external fonts -- */
+.widar {
+    font-family: "Quicksand", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* --- Reset & Variables --- */
+:root {
+    /* Color Palette */
+    --color-seperator:#565656;
+    --bg-color: #161616;          /* Very dark background */
+    --bg-color-alt: #222222;      /* Slightly lighter background for cards/sections */
+    --header-bg: #272727;         /* Header specific background */
+    --text-primary: #e0e0e0;      /* Near-white for main text */
+    --text-muted: #a0a0a0;        /* Gray for descriptions/dates */
+    --accent-color: #2f96dc;      /* Primary sleek blue */
+    --accent-hover: #5dade2;      /* Lighter blue for hover states */
+    --border-color: #3c3c3c;      /* Subtle borders */
+    --form-bg: #252525;           /* Input field background */
+    --accent-manage-hover: #018001;
+    --accent-manage: #3f8e3f;
+    --accent-open-hover:#3498db;
+    --accent-open:#5dade2;
+
+    --accent-evil-hover: #df6464;
+    --accent-evil: #f34545;
+
+    /* Layout & Spacing */
+    --container-width: 1200px;
+    --spacing-xs: 0.25rem;
+    --font-size-sm: 1rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
+    --border-radius: 4px;
+
+    /* Typography */
+    --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* --- Base Elements --- */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--accent-hover);
+}
+
+h3, h4 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+/* --- Layout --- */
+main {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+    width: 100%;
+    flex: 1; /* Pushes footer down */
+}
+
+/* --- Header --- */
+header {
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+header .title {
+    display: flex;
+    flex-direction: column;
+}
+
+header .banner {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+header .banner img {
+    height: 40px; /* Force consistent small height regardless of source width */
+    width: auto;
+    border-radius: var(--border-radius);
+}
+
+header .description {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: -4px;
+    padding-left: 48px; /* Align with text after logo */
+}
+
+/* --- Navigation --- */
+nav {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+hr {
+    border-color: var(--border-color);
+    border-width: 1px;
+    border-style: solid;
+}
+
+nav .akar-icon {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+nav a {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+nav.condensed a {
+    text-transform: none;
+    font-weight: normal;
+    font-size: 0.9rem;
+}
+
+/* --- Page Specific Utilities --- */
+.title-header {
+    margin-top: 1.25em;
+    margin-left: 10%;
+}
+
+.title-header h2 {
+
+}
+
+.admin-username {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.login-path {
+    color: var(--text-muted);
+    display: flex;
+    gap: 3px;
+    font-size: .9rem;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    align-items: center;
+    flex-direction: row;
+}
+
+.login-path .arrow {
+    color: var(--accent-color);
+    margin: 0 var(--spacing-xs);
+    font-weight: bold;
+}
+
+/* --- Scan Grid/Cards --- */
+.scan-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.login-failed {
+    text-align: center;
+    color: var(--accent-evil);
+}
+
+.scan-card {
+    background-color: var(--bg-color-alt);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.scan-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgb(255 255 255 / 21%);
+    border-color: #444;
+}
+
+/* Preview background area on card */
+.scan-preview-background {
+    background-size: cover;
+    background-position: center;
+    height: 150px;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+}
+
+/* Gradient overlay for text legibility on image */
+.scan-preview-background::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    z-index: 1;
+}
+
+.scan-name, .scan-desc {
+    position: relative;
+    z-index: 2; /* above gradient */
+}
+
+.scan-name {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.scan-name:hover {
+    color: var(--accent-hover);
+}
+
+.scan-desc {
+    color: #ccc;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+/* Card details area */
+.scan-dates {
+    padding: var(--spacing-md) var(--spacing-md) 0 var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.absolute.time {
+    opacity: 0.7;
+    font-size: 0.75rem;
+}
+
+.scan-options {
+    padding: var(--spacing-md);
+    margin-top: auto; /* Push to bottom of card content */
+    border-top: 1px solid var(--border-color);
+    background-color: rgba(0,0,0,0.1);
+    display: inline-flex;
+    align-items: center;
+}
+
+.button-sep {
+    border-left: 3px double var(--color-seperator);
+    margin-inline: 8px;
+    height: calc(100% - .6em);
+}
+
+.scan-id {
+    position: absolute;
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    z-index: 2;
+}
+
+/* --- Buttons --- */
+button, input[type="submit"], .button {
+    display: block;
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+}
+
+button:hover, .button, input[type="submit"]:hover {
+    background-color: var(--accent-hover);
+}
+
+a.button.evil {
+    background-color: var(--accent-evil);
+}
+
+a.button.evil:hover {
+    background-color: var(--accent-evil-hover);
+}
+
+a.button.manage {
+    background-color: var(--accent-manage);
+}
+
+a.button.manage:hover {
+    background-color: var(--accent-manage-hover);
+}
+
+a.button.open {
+    background-color: var(--accent-open);
+}
+
+a.button.open:hover {
+    background-color: var(--accent-open-hover);
+}
+
+a.button {
+    text-align: center;
+    color: #fff;
+    max-width: 100%;
+}
+a.button a:hover {
+    color: #fff;
+}
+
+/* specific button styling override within cards */
+.scan-manage {
+    width: 100%;
+    padding: 8px;
+}
+.form {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color-alt);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    margin: var(--spacing-lg) auto;
+
+}
+
+.form legend {
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 0 var(--spacing-sm);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+/* --- Login Form --- */
+
+.login.form {
+    max-width: 400px;
+    text-align: center;
+}
+
+.login.form img {
+    display: block;
+    margin: 0 auto var(--spacing-md) auto;
+    border-radius: var(--border-radius);
+}
+
+.login-item {
+    display: block;
+    text-align: left;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* --- Forms & Inputs --- */
+input[type="text"],
+textarea,
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: var(--spacing-xs);
+    background-color: var(--form-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    transition: border-color 0.2s ease;
+}
+
+input[type="text"]:focus,
+textarea:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+fieldset form br {
+    display: none; /* remove legacy line breaks used for layout */
+}
+
+.login-form input[type="submit"] {
+    width: 100%;
+    margin-top: var(--spacing-sm);
+    padding: 12px;
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--header-bg);
+    margin-top: auto;
+}
+small {
+    color: var(--text-muted);
+}
+
+.title-header small {
+    font-size: var(--font-size-sm);
+}
+
+/* --- Responsive adjustments --- */
+@media (max-width: 600px) {
+    .title-header {
+        margin: 0;
+        padding-block: 1em;
+        text-align:center;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .title {
+        align-items: center;
+        gap: .3em;
+    }
+
+    header {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-md);
+    }
+
+    header .description {
+        padding-left: 0;
+    }
+
+    .scan-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .widar-area {
+        flex-direction: column;
+    }
+}

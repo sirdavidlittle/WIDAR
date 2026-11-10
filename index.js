@@ -68,8 +68,8 @@ const cookieOptions = {
 }
 
 function verifyLogin(req) {
-  const username = req.body?.username
-  const password = req.body?.password
+  const {username, password} = req.body
+  // TODO ACTUAL USERNAMES
   if (username && password === process.env.ADMIN_PASSWORD) {
     return {valid: true, token:tokenManager.generateToken(username), username: username}
   }
@@ -81,7 +81,7 @@ function loggedIn(req) {
 }
 
 app.get('/', (req, res) => {
-  username = tokenManager.getUserByToken(req.cookies?._token)
+  const username = tokenManager.getUserByToken(req.cookies?._token)
   res.render('index', {
     username: username,
     isAdmin: !!username,
@@ -251,14 +251,15 @@ app.all('/manage/*src', (req, res, next) => {
 });
 
 function __scan_log(message, req) {
-  console.log(`${message} ${req.params.id} [${req.ip}]`)
+  console.log(`${message} ${req.params.id || '?'} [${req.ip}]`)
 }
 
 app.get('/manage/upload', (req, res) => {
-  res.render('upload', {})
+  const username = tokenManager.getUserByToken(req.cookies?._token)
+  res.render('upload', {username})
 })
 
-app.post('/manage/:id', (req, res) => {
+app.post('/manage/upload', (req, res) => {
   __scan_log("Create", req)
   res.status(201).send('created')
   // create a new upload

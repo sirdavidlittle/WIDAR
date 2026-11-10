@@ -5,18 +5,21 @@
     <title>WIDAR :: Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/ico.css">
     <link rel="icon" href="/img/favicon.ico">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
   </head>
   <body>
     <header>
-      <div class="title">
-        <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+      <div class="title widar">
+        <span class="banner">
+          <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
       </div>
       <div class="login-path">
       Login
       <% if (destItems) { %>
         <% for (const item of destItems) { %>
-          <span class="arrow">&rarr;</span> <%= item%>
+          <span class="akar-icon arrow"></span> <%= item%>
         <% } %>
       <% } %>
       </div>
@@ -24,12 +27,12 @@
 
     <main>
       <% if (failed) { %>
-        <h4 class="login-status"> Login Failed </h4>
+        <h3 class="login-failed"> Login Failed </h3>
       <% } %>
 
-    <fieldset class="login-form">
+    <fieldset class="login form">
       <!-- corporate splash centered above login -->
-      <img src="/img/widar.jpg" width="130px">
+      <img src="/img/widar.jpg" width="170px">
       <legend>Administrator Login</legend>
       <form action="<%=destURL%>" method="POST">
         <label class="login-item">

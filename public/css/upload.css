@@ -1,0 +1,81 @@
+.directory {
+    margin: 0;
+    line-height:1.3rem;
+    font-family: monospace;
+    width: fit-content;
+    background-color: var(--border-color);
+    padding: .75em;
+    border-radius: var(--border-radius);
+}
+
+.directory ul, .directory, .directory li {
+    padding-left: 1em;
+}
+
+.directory li::marker {
+    content: "├";
+    font-size: 1.2rem;
+}
+
+summary.example-upload {
+    user-select: none;
+}
+
+.directory li:last-child::marker {
+    content: "┕";
+}
+
+.upload-file {
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.upload-chosen {
+    color: var(--accent-color);
+    font-style: italic;
+    font-size: 1.25rem;
+}
+
+.upload-card {
+    width: fit-content;
+    border: 3px dashed var(--color-seperator);
+    aspect-ratio: 1;
+    border-radius: 1em;
+    background: var(--header-bg);
+    margin-block: 1em;
+    line-height: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    padding: .75em;
+    cursor:pointer;
+    transition: 200ms ease color, border-color;
+}
+
+.upload-area {
+ display: flex;
+}
+
+.form.upload {
+    max-width: 700px;
+}
+
+.upload-options {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 3em;
+    align-items: stretch;
+}
+
+.upload-card:hover {
+    color: var(--text-primary);
+    border-color: #797979;
+}
+
+.upload-button {
+    display: flex;
+    flex-direction: column;
+}
