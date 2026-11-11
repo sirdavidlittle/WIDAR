@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/sim.css">
+    <link rel="stylesheet" href="/css/ico.css">
     <link rel="icon" href="/img/favicon.ico">
     <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
   </head>
@@ -21,25 +22,33 @@
     </nav>
   </header>
   <main>
-
   <section class="widar-area">
     <div class="widar-info">
-      <p class="widar-title"> <%= scan.name%></p>
+      <p class="widar-title"> <%= scan.title%></p>
       <p class="widar-description"> <%= scan.description%></p>
       <div class="scan-dates">
         <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
         <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
       </div>
     </div>
-
     <div class="sim-area">
-    <canvas style="background-image:url(<%- previewImage(scan.id) %>);" width="500px" height="500px" class="sim-canvas" id="sim"></canvas>
+      <aside class="sim-settings" id="sim_settings">
+        hello world
+      </aside>
+      <div class="sim-main" id="sim_frame">
+        <div class="sim-tray">
+          <button class="akar-icon fullscreen" onclick="sim_toggle_fullscreen(this)" title="Fullscreen"></button>
+          <button class="akar-icon home" onclick="sim_home()" title="Home"></button>
+          <button class="akar-icon settings" onclick="sim_toggle_settings()" title="Settings"></button>
+        </div>
+        <div class="sim-wrap">
+       <canvas style="background-image:url(<%- previewImage(scan.id) %>);" width="500px" height="500px" class="sim-canvas" id="sim"></canvas>
+        </div>
+      </div>
     </div>
   </section>
   </main>
-
   <footer>WIDAR ® 2026</footer>
-
   <script src="/js/widar_sim.js"></script>
   </body>
 </html>

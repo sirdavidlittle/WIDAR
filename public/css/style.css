@@ -33,7 +33,6 @@ body,html {
     --accent-manage: #3f8e3f;
     --accent-open-hover:#3498db;
     --accent-open:#5dade2;
-
     --accent-evil-hover: #df6464;
     --accent-evil: #f34545;
 
@@ -43,7 +42,7 @@ body,html {
     --font-size-sm: 1rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
-    --spacing-lg: 2rem;
+    --spacing-lg: 1.5rem;
     --border-radius: 4px;
 
     /* Typography */
@@ -326,31 +325,39 @@ button, input[type="submit"], .button {
     font-size: 0.9rem;
 }
 
+.button.left {
+ margin-left: auto!important;
+}
+
+.button.expand {
+    margin: 1.25em;
+}
+
 button:hover, .button, input[type="submit"]:hover {
     background-color: var(--accent-hover);
 }
 
-a.button.evil {
+.button.evil {
     background-color: var(--accent-evil);
 }
 
-a.button.evil:hover {
+.button.evil:hover {
     background-color: var(--accent-evil-hover);
 }
 
-a.button.manage {
+.button.manage {
     background-color: var(--accent-manage);
 }
 
-a.button.manage:hover {
+.button.manage:hover {
     background-color: var(--accent-manage-hover);
 }
 
-a.button.open {
+.button.open {
     background-color: var(--accent-open);
 }
 
-a.button.open:hover {
+.button.open:hover {
     background-color: var(--accent-open-hover);
 }
 

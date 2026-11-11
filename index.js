@@ -3,24 +3,36 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const TokenManager = require('./TokenManager')
-
-// const ejs = require('ejs');
-// const ffmpeg = require('ffmpeg');
-
-const timeunits = require('./timeunits.mjs');
+const units = require('./units.mjs');
 const injectAppLocals = require('./applocals');
+const multer = require('multer');
 
 const ScanStore = require("./ScanStore");
 const { LRUCache } = require('lru-cache');
 const asyncfs = fs.promises
 
+// Configure multer to store files in memory (as a Buffer)
+const uploadScan = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: units.MB(30) },
+  fileFilter: (req, file, cb) => {
+    const isZipMime = file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed';
+    const isZipExt = file.originalname.toLowerCase().endsWith('.zip');
+
+    if (isZipMime || isZipExt) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .zip files are allowed.'));
+    }
+  }
+});
 
 const imageCache = new LRUCache({
   max: 500,
-  ttl: timeunits.MINUTES(50)
+  ttl: units.MINUTES(50)
 });
 
-const scanCachePolicy  = `public, max-age=${timeunits.HOURS(2)}, immutable`
+const scanCachePolicy  = `public, max-age=${units.HOURS(2)}, immutable`
 
 const app = express();
 const server = http.createServer(app);
@@ -30,10 +42,10 @@ injectAppLocals(app)
 const scanStore = new ScanStore({
   scandir: "data/scans",
   scandata: "data/meta.json",
-  ttl: timeunits.HOURS(2),
+  ttl: units.HOURS(2),
 });
 
-const tokenManager = new TokenManager({tokenLifespan: timeunits.HOURS(6) });
+const tokenManager = new TokenManager({tokenLifespan: units.HOURS(6) });
 
 app.use((require("cors"))());
 app.use((require("cookie-parser"))());
@@ -69,9 +81,13 @@ const cookieOptions = {
 
 function verifyLogin(req) {
   const {username, password} = req.body
-  // TODO ACTUAL USERNAMES
+  // TODO ACTUAL AUTH
   if (username && password === process.env.ADMIN_PASSWORD) {
-    return {valid: true, token:tokenManager.generateToken(username), username: username}
+    return {
+      valid: true,
+      token:tokenManager.generateToken(username),
+      username: username
+    }
   }
   return {valid: false}
 }
@@ -82,6 +98,7 @@ function loggedIn(req) {
 
 app.get('/', (req, res) => {
   const username = tokenManager.getUserByToken(req.cookies?._token)
+
   res.render('index', {
     username: username,
     isAdmin: !!username,
@@ -250,43 +267,73 @@ app.all('/manage/*src', (req, res, next) => {
   }
 });
 
-function __scan_log(message, req) {
-  console.log(`${message} ${req.params.id || '?'} [${req.ip}]`)
-}
 
 app.get('/manage/upload', (req, res) => {
   const username = tokenManager.getUserByToken(req.cookies?._token)
   res.render('upload', {username})
 })
 
-app.post('/manage/upload', (req, res) => {
-  __scan_log("Create", req)
-  res.status(201).send('created')
-  // create a new upload
+function verifyScanSubmission(req) {
+  if (!req.file) {
+    throw Error('no file uploaded')
+  } if (!req.body.title) {
+    throw Error("no title specified")
+  } if(!req.body.description) {
+    throw Error('no description specified')
+  }
+}
+
+app.post('/manage/upload', uploadScan.single('file'), async (req, res) => {
+  let newID;
+
+  try {
+    verifyScanSubmission(req)
+
+    newID = await scanStore.processScan(
+        {
+          archive: req.file.buffer,
+          title: req.body.title,
+          description: req.body.description,
+        },
+    )
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send(error.message)
+  }
+
+  res.status(201).redirect(`/scan/${newID}`)
 });
+
 
 app.get('/manage/:id', (req, res) => {
-  __scan_log("fetch", req)
-  res.status(200).send('data')
+  const {id} = req.params
+  if (scanStore.scanExists(id)) {
+    const scan = scanStore.getScanInfo(id)
+    res.render('edit', {id, scan})
+  } else {
+    res.redirect('/')
+  }
 });
 
-app.patch('/manage/:id', (req, res) => {
-  // no implement
-  __scan_log("Modify", req)
-  res.status(200).send('modified')
-  // create a new upload
-});
-
-app.delete('/manage/:id', (req, res) => {
-  __scan_log("(Unimplemented) Delete", req)
-  res.status(501).send('modified')
-  // delete a scan
+app.post('/manage/:id/delete', async(req, res) => {
+  const {id} = req.params
+  if (scanStore.scanExists(id)) {
+    await scanStore.deleteScan(id)
+    res.redirect('/')
+  } else {
+    res.status(404).send(`No such scan named ${id}`)
+  }
 })
 
-
-app.get('/manage/*a', (req, res) =>  {
-  res.redirect('/?from=manage');
-  // redirect to index
+app.post('/manage/:id', async (req, res) => {
+  const {id} = req.params
+  const {title, description} = req.body
+  if (scanStore.scanExists(id)) {
+    await scanStore.modifyScan(id, {title, description})
+    res.redirect('/')
+  } else {
+    res.status(404).send(`No such scan named ${id}`)
+  }
 });
 
 app.get('*a', (req, res) => {

@@ -42,7 +42,7 @@ class TimedMapCache {
             return null
         }
         if (this.isExpired(item)) {
-            this.items.remove(id)
+            this.items.delete(id)
             return null
         }
         return item.item
@@ -61,7 +61,7 @@ class TimedMapCache {
     }
 
     remove(id) {
-        return this.items.remove(id) || null
+        return this.items.delete(id) || null
     }
 
     purge() {

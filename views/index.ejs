@@ -43,7 +43,7 @@
     <% function make_scan_card(scan) { %>
       <div class="scan-card">
         <div class="scan-preview-background" style="background-image:url(<%- previewImage(scan.id) %>);">
-          <a href="scan/<%- scan.id %>" class="scan-name"><%= scan.name%></a>
+          <a href="scan/<%- scan.id %>" class="scan-name"><%= scan.title%></a>
           <span class="scan-desc"><%= scan.description%></span>
         </div>
 

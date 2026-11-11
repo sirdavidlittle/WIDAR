@@ -1,11 +1,88 @@
+
+
+.sim-tray {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    margin-bottom: .5em;
+    height: 1.5em;
+}
+
+:root {
+    --fscreen-alt: #333333;
+    --fscreen-border: #4e4e4e;
+}
+
+.sim-tray .akar-icon {
+    height: auto;
+    transition: 100ms ease transform;
+}
+
+.sim-tray .akar-icon:active {
+    transform: scale(85%);
+}
 .sim-canvas {
-    background-size: 100% 100%;
+    box-sizing:content-box;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+    height: auto; /* maintain aspect ratio if width is constrained by CSS */
+    background-size: 100%;
     background-repeat: no-repeat;
     border:1px solid var(--bg-color);
 }
 
-.sim-area {
 
+.sim-main.fullscreen {
+
+    background: var(--bg-color);
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+.fullscreen .sim-wrap {
+    display: flex;
+    height: -webkit-fill-available;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+    flex-direction: column;
+    margin: 0;
+}
+
+
+.fullscreen .sim-tray {
+
+    background: var(--fscreen-alt);
+
+    border-bottom: 2px solid var(--fscreen-border);
+
+    height: fit-content;
+
+    padding: .75em;
+
+    margin: 0;
+}
+
+.fullscreen .sim-canvas {
+    border: none;
+    padding:0;
+    box-sizing: content-box;
+    height: -webkit-fill-available;
+    z-index: 300;
+    border-radius: 0;
+}
+
+.sim-settings.hidden {
+    display: none;
+}
+
+.sim-area {
+    display: flex;
+    background: var(--bg-color-alt);
+    border: 1px solid var(--border-color);
+    padding: 0.5em;
 }
 
 .widar-info {
@@ -19,6 +96,10 @@
     gap: var(--spacing-lg);
     flex-wrap: wrap;
     justify-content: center;
+}
+
+.sim-wrap {
+    margin: .5em;
 }
 
 .widar-info {
@@ -46,11 +127,4 @@
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-md);
-}
-
-canvas#sim {
-    border-radius: var(--border-radius);
-    border: 2px solid var(--border-color);
-    max-width: 100%;
-    height: auto; /* maintain aspect ratio if width is constrained by CSS */
 }
