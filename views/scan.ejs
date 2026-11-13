@@ -17,7 +17,7 @@
       <p class="description">A Helpful handheld WiFi-Radar</p>
     </div>
     <!--break-->
-    <nav class="condensed">
+    <nav>
         <a href="/">Home</a>
     </nav>
   </header>
@@ -29,26 +29,129 @@
       <div class="scan-dates">
         <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
         <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
+        <span>uploaded by <b><%= scan.uploader%></b></span>
       </div>
     </div>
     <div class="sim-area">
       <aside class="sim-settings" id="sim_settings">
-        hello world
+        <div class="sim-wifi-settings" id="sim_wifi_settings">
+          <label for="sim_wifi_selector">Network</label>
+          <select class="sim-wifi-selector" id="sim_wifi_selector">
+            <option value="ALL">All Wi-Fi Networks (Peak RSSI)</option>
+            <optgroup label="By SSID Name" id="wifi_ssid"></optgroup>
+            <optgroup label="By MAC Address" id="wifi_bssid"></optgroup>
+          </select>
+          <button class="sim-reset" onclick="sim_reset_position()">Reset View</button>
+      <!-- todo -->
+          <div class="rotation-circle" id="rotation_circle">
+            <div class="rotation-indicator" id="rotation_indicator"></div>
+            <div class="rotation-center"></div>
+          </div>
+
+          <input type="number" class="rotation-input" id="rotation_input" value="0" min="0" max="359">
+        </div>
       </aside>
       <div class="sim-main" id="sim_frame">
         <div class="sim-tray">
           <button class="akar-icon fullscreen" onclick="sim_toggle_fullscreen(this)" title="Fullscreen"></button>
-          <button class="akar-icon home" onclick="sim_home()" title="Home"></button>
+          <button class="akar-icon home" onclick="sim_reset_position()" title="Home"></button>
           <button class="akar-icon settings" onclick="sim_toggle_settings()" title="Settings"></button>
         </div>
         <div class="sim-wrap">
-       <canvas style="background-image:url(<%- previewImage(scan.id) %>);" width="500px" height="500px" class="sim-canvas" id="sim"></canvas>
+       <canvas style="background-image:url(<%- previewImage(scan.id) %>);" width="600px" height="600px" class="sim-canvas" id="sim"></canvas>
         </div>
       </div>
     </div>
   </section>
   </main>
   <footer>WIDAR ® 2026</footer>
-  <script src="/js/widar_sim.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/simpleheat@0.4.0/simpleheat.js"></script>
+  <script defer type="module" src="/js/widar_sim.js"></script>
+  <script>
+    const sim_settings = document.getElementById('sim_settings');
+    const sim_frame = document.getElementById('sim_frame');
+
+    document.onfullscreenchange = () => {
+      sim_frame.classList.toggle('fullscreen');
+    }
+
+    function sim_toggle_settings() {
+      sim_settings.classList.toggle('hidden');
+    }
+
+    function sim_toggle_fullscreen(elem)
+    {
+      if (document.fullscreenElement) {
+        document.exitFullscreen()
+        elem.classList.toggle('smallscreen fullscreen');
+      } else {
+        sim_frame.requestFullscreen();
+        elem.classList.replace('fullscreen', 'smallscreen');
+      }
+    }
+
+    function sim_reset_position() {
+      if (window.sim_reset_callback) {
+        sim_reset_callback();
+      }
+      sim_change_rotation(0, 0)
+    }
+
+    const rotationCircle = document.getElementById('rotation_circle');
+    const rotationIndicator = document.getElementById('rotation_indicator');
+    const rotationValue = document.getElementById('rotation_input');
+
+    let rotation = 0;
+    let dragging = false;
+
+
+    function sim_change_rotation(rotationRad, rotationDeg) {
+      rotationIndicator.style.transform = `translateX(-50%) rotate(${rotationRad}rad)`;
+
+      if (window.sim_rotation_callback) {
+        sim_rotation_callback(rotationRad)
+      }
+
+      rotationValue.value = Math.round(rotationDeg);
+    }
+
+    function updateRotationFromMouse(e) {
+      const rect = rotationCircle.getBoundingClientRect();
+
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = e.clientX - centerX;
+      const dy = e.clientY - centerY;
+
+      const angle = Math.atan2(dx, -dy);
+
+      sim_change_rotation(angle, angle * (180 / Math.PI));
+    }
+
+    rotationCircle.addEventListener('pointerdown', e => {
+      dragging = true;
+      rotationCircle.setPointerCapture(e.pointerId);
+      updateRotationFromMouse(e);
+    });
+
+    rotationCircle.addEventListener('pointermove', e => {
+      if (dragging) updateRotationFromMouse(e);
+    });
+
+    rotationCircle.addEventListener('pointerup', () => {
+      dragging = false;
+    });
+
+    rotationCircle.addEventListener('pointercancel', () => {
+      dragging = false;
+    });
+
+    rotationValue.addEventListener('input', () => {
+      const rotationDeg = Number(rotationValue.value) || 0
+      const rotationRad = rotationDeg * (Math.PI / 180)
+      sim_change_rotation(rotationRad, rotationDeg);
+    });
+  </script>
   </body>
 </html>
