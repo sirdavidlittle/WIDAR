@@ -1,15 +1,14 @@
 const express = require('express');
 const http = require('http');
-const fs = require('fs');
 const path = require('path');
 const TokenManager = require('./TokenManager')
 const units = require('./units.mjs');
 const injectAppLocals = require('./applocals');
 const multer = require('multer');
-
 const ScanStore = require("./ScanStore");
-const { LRUCache } = require('lru-cache');
-const asyncfs = fs.promises
+
+const IN_PROD = process.env.NODE_ENV === 'production'
+const PORT = IN_PROD ? 80 : 8080
 
 // Configure multer to store files in memory (as a Buffer)
 const uploadScan = multer({
@@ -27,13 +26,8 @@ const uploadScan = multer({
   }
 });
 
-const imageCache = new LRUCache({
-  max: 500,
-  ttl: units.MINUTES(50)
-});
 
 const scanCachePolicy  = `public, max-age=${units.HOURS(2)}, immutable`
-
 const app = express();
 const server = http.createServer(app);
 
@@ -42,7 +36,8 @@ injectAppLocals(app)
 const scanStore = new ScanStore({
   scandir: "data/scans",
   scandata: "data/meta.json",
-  ttl: units.HOURS(2),
+  ttl: units.HOURS(1),
+  maxscans: 20
 });
 
 const tokenManager = new TokenManager({tokenLifespan: units.HOURS(6) });
@@ -50,143 +45,37 @@ const tokenManager = new TokenManager({tokenLifespan: units.HOURS(6) });
 app.use((require("cors"))());
 app.use((require("cookie-parser"))());
 
+if (IN_PROD) {
+  app.enable('view cache')
+} else {
+  console.log('[EJS] view cache disabled')
+  app.disable('view cache')
+}
 
-
-// app.enable('view cache')
-app.disable('view cache')
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.json());
 
-app.use(express.static('public', {
-  maxAge: '1d',
-  etag: true
-}));
+app.use(express.static(
+    'public',
+    {
+      maxAge: '1d',
+      etag: true
+    }
+));
 
-app.use(express.static('data/scans', {
-  maxAge: '1d', // Cache in browser for 1 day
-  etag: true    // Enable ETag validation
-}));
-
-app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
-app.set('views', path.join(__dirname, 'views'));
 
 
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.PROD,
-  sameSite: process.env.PROD ? 'none' : 'lax',
+  secure: IN_PROD,
+  sameSite: IN_PROD ? 'none' : 'lax',
   path: '/'
 }
 
-function verifyLogin(req) {
-  const {username, password} = req.body
-  // TODO ACTUAL AUTH
-  if (username && password === process.env.ADMIN_PASSWORD) {
-    return {
-      valid: true,
-      token:tokenManager.generateToken(username),
-      username: username
-    }
-  }
-  return {valid: false}
-}
-
-function loggedIn(req) {
-  return tokenManager.isValid(req.cookies?._token)
-}
-
-app.get('/', (req, res) => {
-  const username = tokenManager.getUserByToken(req.cookies?._token)
-
-  res.render('index', {
-    username: username,
-    isAdmin: !!username,
-    scans: scanStore
-  })
-  // main page, display scans as cards
-});
-
-// data/file APIs
-app.get('/scan/:id', (req, res, next) => {
-  const id = req.params.id;
-
-  if (!id) {
-    next()
-  }
-
-  const scan = scanStore.getScanInfo(id)
-
-  if (!scan) {
-    res.status(404).send(`No such scan ${id}`)
-  } else {
-    res.render('scan', {
-      scan: scan
-    });
-  }
-});
-
-app.get('/scan/:id/*resource', (req, res, next) => {
-  const id = req.params.id;
-  if (!scanStore.scanExists(id)) {
-   res.status(404).send()
-  } else {
-    next()
-  }
-})
-
-async function imageHandler(id, resource, res) {
-  let buffer;
-  res.type('image/png');
-
-  if (imageCache.has(id)) {
-    console.log(`[cacher] from cache #${id}`)
-    buffer = imageCache.get(id);
-  } else {
-    try {
-      const scanPath = scanStore.scanPath(id, resource);
-      buffer = await asyncfs.readFile(scanPath);
-      imageCache.set(id, buffer);
-      console.log(`[cacher] from disk #${id}`)
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send(err)
-    }
-  }
-  res.set('Cache-Control', scanCachePolicy)
-  res.send(buffer)
-}
-
-app.get('/scan/:id/preview.png',
-    async (req, res)=>
-        await imageHandler(
-            req.params.id,
-            "preview.png",
-            res
-        )
-)
-
-app.get('/scan/:id/map.png',
-    async (req, res)=>
-        await imageHandler(
-            req.params.id,
-            "map.png",
-            res
-        )
-)
-
-app.get('/scan/:id/data', async (req, res) => {
-  const id = req.params.id;
-
-  const data = await scanStore.getScanData(id)
-
-  if (data==null) {
-    return res.status(404).send()
-  }
-
-  res.set('Cache-Control', scanCachePolicy)
-  res.type('application/json').send(data)
-});
+// UTIL FUNCTIONS
 
 function replaceURLRoot(url, newRoot) {
   const query_idx = url.indexOf('?')
@@ -205,21 +94,62 @@ function trimURLQuery(url) {
   return url.substring(0, query_idx)
 }
 
-const loginGetEndpoint = (req, res) =>  {
+function verifyLogin(req) {
+  const {username, password} = req.body
+  if (username && password === process.env.ADMIN_PASSWORD) {
+    return {
+      valid: true,
+      token:tokenManager.generateToken(username),
+      username: username
+    }
+  }
+  return {valid: false}
+}
+
+function loggedIn(req) {
+  return tokenManager.isValid(req.cookies?._token)
+}
+
+function verifyScanRequest({type, onerror}) {
+  return (req, res, next) => {
+    const {id} = req.params;
+    if (type) {
+      res.type(type)
+    }
+    if (!scanStore.scanExists(id)) {
+      onerror(res)
+    } else {
+      next()
+    }
+  }
+}
+
+async function serveScanResource(id, res, resource){
+  try {
+    const buffer = await scanStore.getResource(id, resource)
+    res.set('Cache-Control', scanCachePolicy).send(buffer);
+  } catch (err) {
+    res.status(500).end()
+    console.error(err);
+  }
+}
+
+
+function loginGetEndpoint (req, res)  {
   const destinationURL = replaceURLRoot(req.originalUrl, "/manage")
   if (loggedIn(req)) {
     res.redirect(destinationURL)
   } else {
     const destination = !destinationURL.length ||
-                                  destinationURL.length > 100 ?
-                                 null :
-                                 destinationURL.split(/\/+/);
+    destinationURL.length > 100 ?
+        null :
+        destinationURL.split(/\/+/);
 
     res.render('login', {
-        failed: req.query.failed,
-        destItems: destination,
-        destURL: trimURLQuery(req.originalUrl),
-      })
+      failed: req.query.failed,
+      destItems: destination,
+      destURL: trimURLQuery(req.originalUrl),
+    })
   }
 }
 
@@ -236,14 +166,88 @@ const loginPostEndpoint = (req, res) =>  {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+app.get('/', (req, res) => {
+  const username = tokenManager.getUserByToken(req.cookies?._token)
+
+  res.render('index', {
+    username: username,
+    isAdmin: !!username,
+    scans: scanStore
+  })
+  // main page, display scans as cards
+});
+
+app.get('/scan/:id', verifyScanRequest({
+  onerror:
+      (res) =>  res.redirect('/?from=unknown')
+}));
+
+
+app.get("/scan/:id/data/*name", verifyScanRequest( {
+  type: "application/json",
+  onerror:
+      (res) => res.status(404).end()
+}))
+
+
+app.get('/manage/:id/{*action}', verifyScanRequest({
+  onerror:
+      (res) =>  res.redirect('/?from=unknown')
+}));
+
+app.post('/manage/:id/{*action}', verifyScanRequest({
+  onerror:
+      (res) =>  res.status(404).end()
+}));
+
+app.get('/scan/:id/*resource.png', verifyScanRequest({
+  type: 'image/png',
+  onerror:
+      (res) =>  res.status(404).send('Scan not found')
+}));
+
+app.get('/scan/:id', (req, res) => {
+  const {id} = req.params;
+  const scan = scanStore.getScanInfo(id)
+  res.render('scan', {scan})
+});
+
+function registerScanRequest({name, resource}) {
+  app.get(`/scan/:id/${name}`, async (req, res) => {
+    await serveScanResource(req.params.id, res, resource)
+  })
+}
+
+registerScanRequest({
+  name:'preview.png',
+  resource: 'preview.png'
+})
+
+registerScanRequest({
+  name:'map.png',
+  resource: 'map.png'
+})
+
+registerScanRequest({
+  name:'data/readings',
+  resource: 'readings.json'
+})
+
+registerScanRequest({
+  name:'data/session',
+  resource: 'session.json'
+})
+
 app.get('/about', (req, res) => {
   res.render('about')
 })
 
 app.get('/login', loginGetEndpoint)
-app.get('/login/*a', loginGetEndpoint)
+app.get('/login{/*a}', loginGetEndpoint)
 
-app.post('/login/*a', loginPostEndpoint);
+app.post('/login{/*a}', loginPostEndpoint);
 app.post('/login', loginPostEndpoint);
 
 app.get('/logout', (req, res) => {
@@ -263,13 +267,13 @@ app.all('/manage/*src', (req, res, next) => {
   if (loggedIn(req)) {
     next()
   } else {
-    res.status(401).send()
+    res.status(401).end()
   }
 });
 
 
 app.get('/manage/upload', (req, res) => {
-  const username = tokenManager.getUserByToken(req.cookies?._token)
+  const username = tokenManager.getUserByToken(req.cookies._token)
   res.render('upload', {username})
 })
 
@@ -292,6 +296,7 @@ app.post('/manage/upload', uploadScan.single('file'), async (req, res) => {
     newID = await scanStore.processScan(
         {
           archive: req.file.buffer,
+          username: tokenManager.getUserByToken(req.cookies._token),
           title: req.body.title,
           description: req.body.description,
         },
@@ -305,35 +310,30 @@ app.post('/manage/upload', uploadScan.single('file'), async (req, res) => {
 });
 
 
-app.get('/manage/:id', (req, res) => {
+app.get('/manage/:id/edit', (req, res) => {
   const {id} = req.params
-  if (scanStore.scanExists(id)) {
-    const scan = scanStore.getScanInfo(id)
-    res.render('edit', {id, scan})
-  } else {
-    res.redirect('/')
-  }
+  const scan = scanStore.getScanInfo(id)
+  res.render('edit', {id, scan})
 });
 
-app.post('/manage/:id/delete', async(req, res) => {
-  const {id} = req.params
-  if (scanStore.scanExists(id)) {
+
+if (process.env.DELETION_POLICY === 'allowed') {
+  app.post('/manage/:id/delete', async (req, res) => {
+    const {id} = req.params
     await scanStore.deleteScan(id)
     res.redirect('/')
-  } else {
-    res.status(404).send(`No such scan named ${id}`)
-  }
-})
+  })
+} else {
+  app.post('/manage/:id/delete', (req, res) => {
+    res.status(401).send('Deletion Disallowed By Server Policy<br><a href="/">Home</a>')
+  })
+}
 
-app.post('/manage/:id', async (req, res) => {
+app.post('/manage/:id/edit', async (req, res) => {
   const {id} = req.params
   const {title, description} = req.body
-  if (scanStore.scanExists(id)) {
-    await scanStore.modifyScan(id, {title, description})
-    res.redirect('/')
-  } else {
-    res.status(404).send(`No such scan named ${id}`)
-  }
+  await scanStore.modifyScan(id, {title, description})
+  res.redirect('/')
 });
 
 app.get('*a', (req, res) => {
@@ -342,6 +342,6 @@ app.get('*a', (req, res) => {
 
 
 // Start Server
-server.listen(process.env.PORT, () => {
-  console.log(`Server running on http://localhost:${process.env.PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server '${process.env.NODE_ENV}' running on http://localhost:${PORT}`);
 });

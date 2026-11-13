@@ -21,10 +21,10 @@
       <nav>
         <a href="/about">Who Are We?</a>
         <% if (!isAdmin) { %>
-        <a href="/login">Login</a>
+          <a href="/login">Login</a>
         <% } else { %>
-        <a href="/logout">Logout <span class="akar-icon logout"></span></a>
-        <a href="/manage/upload">Upload A Scan <span class="akar-icon upload"></span></a>
+          <a href="/logout">Logout <span class="akar-icon logout"></span></a>
+          <a href="/manage/upload">Upload A Scan <span class="akar-icon upload"></span></a>
         <% } %>
       </nav>
     </header>
@@ -43,19 +43,20 @@
     <% function make_scan_card(scan) { %>
       <div class="scan-card">
         <div class="scan-preview-background" style="background-image:url(<%- previewImage(scan.id) %>);">
-          <a href="scan/<%- scan.id %>" class="scan-name"><%= scan.title%></a>
+          <a href="scan/<%- scan.id %>/" class="scan-name"><%= scan.title%></a>
           <span class="scan-desc"><%= scan.description%></span>
         </div>
 
         <div class="scan-dates">
           <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
           <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
+          <span class="uploader">uploaded by <b><%= scan.uploader%></b></span>
         </div>
         <div class="scan-options">
-          <a class="scan-manage open button" href="/scan/<%- scan.id %>">Explore <span class="akar-icon wifi"></span></a>
+          <a class="scan-manage open button" href="/scan/<%- scan.id %>/">Explore <span class="akar-icon wifi"></span></a>
             <% if (isAdmin) { %>
          <div class="button-sep"></div>
-          <a class="scan-manage manage button" href="/manage/<%- scan.id %>">Edit <span class="akar-icon pencil"></span></a>
+          <a class="scan-manage manage button" href="/manage/<%- scan.id %>/edit">Edit <span class="akar-icon pencil"></span></a>
            <% } %>
         </div>
         <small class="scan-id">#<%-scan.id%></small>

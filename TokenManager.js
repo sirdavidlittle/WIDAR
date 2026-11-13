@@ -3,25 +3,25 @@ const TimedMapCache = require('./TimedMapCache')
 
 class TokenManager {
   constructor({tokenLifespan}) {
-    this._cache = new TimedMapCache(tokenLifespan);
+    this.timedCache = new TimedMapCache(tokenLifespan);
   }
 
   [Symbol.iterator]() {
-    return this._cache[Symbol.iterator]
+    return this.timedCache[Symbol.iterator]
   }
 
   getUserByToken(token) {
-    return this._cache.get(token)
+    return this.timedCache.get(token)
   }
 
   generateToken(user) {
     const uuid = crypto.randomUUID({disableEntropyCache:true})
     const encoded_uuid = Buffer.from(uuid, "utf8").toString("base64");
 
-    this._cache.insert(
+    this.timedCache.set(
         encoded_uuid,
         user,
-        this._cache.purgeInterval
+        this.timedCache.purgeInterval
     );
 
     return encoded_uuid;
@@ -29,7 +29,7 @@ class TokenManager {
 
 
   isValid(token) {
-    return this._cache.has(token);
+    return this.timedCache.has(token);
   }
 }
 

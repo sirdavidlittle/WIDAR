@@ -206,6 +206,10 @@ nav.condensed a {
     color: var(--accent-evil);
 }
 
+span.uploader {
+    padding-block: 2px var(--spacing-sm);
+}
+
 .scan-card {
     background-color: var(--bg-color-alt);
     border: 1px solid var(--border-color);
@@ -216,6 +220,9 @@ nav.condensed a {
     flex-direction: column;
     position: relative;
 }
+.scan-card:hover .scan-preview-background {
+    background-size: 110%;
+}
 
 .scan-card:hover {
     transform: translateY(-3px);
@@ -225,10 +232,11 @@ nav.condensed a {
 
 /* Preview background area on card */
 .scan-preview-background {
-    background-size: cover;
+    background-size: 100%;
     background-position: center;
     height: 150px;
     padding: var(--spacing-md);
+    transition: 300ms ease background-size;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -325,9 +333,6 @@ button, input[type="submit"], .button {
     font-size: 0.9rem;
 }
 
-.button.left {
- margin-left: auto!important;
-}
 
 .button.expand {
     margin: 1.25em;

@@ -67,7 +67,7 @@ summary.example-upload {
     display: flex;
     justify-content: space-around;
     padding-top: 3em;
-    align-items: stretch;
+    align-items: center;
 }
 
 .upload-card:hover {
@@ -92,15 +92,6 @@ dialog {
     background: #ffffff;
     color: #1a1a1a;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-body:has(dialog[open]) .dialog-frame {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-content: center;
 }
 
 /* Background overlay (only active when opened via .showModal()) */

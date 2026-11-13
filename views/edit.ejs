@@ -16,14 +16,14 @@
         <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
         <p class="description">A Helpful handheld WiFi-Radar</p>
     </div>
-    <nav class="condensed">
-        <a href="/">Home</a>
-        <a href="/manage/upload">Upload a new Scan</a>
+    <nav>
+        <a href="/">Home <span class="akar-icon home"></span></a>
+        <a href="/manage/upload">Upload a new Scan <span class="akar-icon upload"></span></a>
     </nav>
 </header>
 <div class="title-header">
     <h2>Editing Scan <span class="admin-username">#<%- scan.id %></span></h2>
-    <small><i><%= scan.name %></i></small>
+    <small><i><%= scan.title %></i></small>
 </div>
 <dialog id="delete-modal">
     <h4>Are you Sure?</h4>
@@ -36,7 +36,7 @@
     <!-- corporate splash centered above login -->
     <fieldset class="upload form">
         <legend>Modify Scan</legend>
-        <form action="/manage/<%- scan.id %>" method="POST">
+        <form action="/manage/<%- scan.id %>/edit" method="POST">
             <label class="login-item">
                 New Title
                 <input value="<%= scan.title %>" type="text" name="title" placeholder="new title">
@@ -48,6 +48,7 @@
             </label>
             <div class="upload-options">
                 <button type="submit" class="button expand manage">Apply Changes <span class="akar-icon pencil"></span></button>
+                <a href="/" class="button open">Cancel</a>
                 <button type="button" command="show-modal" commandfor="delete-modal" class="button expand evil">Delete Scan <span class="akar-icon trash"></span></button>
             </div>
         </form>

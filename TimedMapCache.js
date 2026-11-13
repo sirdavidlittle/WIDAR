@@ -19,7 +19,7 @@ class TimedMapCache {
         }
     }
 
-    insert(id, item, lifespan) {
+    set(id, item, lifespan) {
         if (this.items.has(id)) {
             throw Error("id already exists in cache")
         }
@@ -60,7 +60,7 @@ class TimedMapCache {
         return (Date.now() - item.birth > item.lifespan)
     }
 
-    remove(id) {
+    delete(id) {
         return this.items.delete(id) || null
     }
 

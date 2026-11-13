@@ -1,37 +1,54 @@
-const TimedMapCache = require('./TimedMapCache');
 const fs = require("node:fs");
 const path = require("node:path");
 const converter = require("./file_converters");
 const asyncfs = fs.promises
 const AdmZip = require('adm-zip');
 const units = require("./units.mjs");
+const {LRUCache} = require('lru-cache');
+
+
+const MAX_SAVE_RETRY = 10;
+const SAVE_RETRY_DURATION = units.SECONDS(20);
+
 
 class ScanStore {
-    constructor({scandir, scandata, ttl}) {
+    constructor({scandir, scandata, ttl, maxscans}) {
         this.scandir = scandir;
         this.scandata = scandata;
-        this.ttl = ttl
-        let scan_meta;
 
         try {
-            scan_meta = JSON.parse(fs.readFileSync(scandata, 'utf-8'));
-            this.scanIDs = new Set(fs.readdirSync(scandir));
+            const rawScanMeta = JSON.parse(fs.readFileSync(scandata, 'utf-8'));
+            this._scanID = rawScanMeta.sid
+
+            this.scanMeta = new Map()
+            for (const scan of rawScanMeta.scans) {
+                this.scanMeta.set(scan.id, scan)
+            }
+            for (const scanID of fs.readdirSync(scandir)) {
+                if (!(this.scanMeta.has(scanID))) {
+                    const scan_path = this.scanPath(scanID, '')
+                    const scanEntries = fs.readdirSync(scan_path)
+                    if (scanEntries.length === 0) {
+                        fs.rmSync(this.scanPath(scanID, ''))
+                    }
+                    throw Error(`scan #${scanID} found in FS, but not registered meta`);
+                }
+            }
+
         } catch (e) {
-            console.error("Failed to load scans data aborting")
+            console.error("Failed to load scans, please resolve before booting server!")
             throw e
         }
 
-        this._scanID = scan_meta.sid
-
-        this.scanMeta = new Map()
-        for (const scan of scan_meta.scans) {
-            this.scanMeta.set(scan.id, scan)
-        }
-        this.dataCache = new TimedMapCache( ttl )
+        this.dataCache = new LRUCache({
+            max: maxscans,
+            ttl: ttl,
+            allowStale: false,
+            dispose: (buffer) => {
+                buffer.dispose?.()
+            },
+        });
     }
-
-    static MAX_SAVE_RETRY = 10;
-    static SAVE_RETRY_DURATION = units.SECONDS(20);
 
     async saveData(retries) {
         retries = retries || 0;
@@ -41,24 +58,21 @@ class ScanStore {
             await asyncfs.writeFile(this.scandata, JSON.stringify(scan_meta));
         } catch (e) {
             console.error('[CRITICAL] failed to save scans')
-            if (retries < ScanStore.MAX_SAVE_RETRY) {
+            if (retries < MAX_SAVE_RETRY) {
                 console.error('Retrying save in 10 seconds')
                 setTimeout(
                     () => this.saveData(retries + 1),
-                    ScanStore.SAVE_RETRY_DURATION
+                    SAVE_RETRY_DURATION
                 )
             }
         }
     }
-
-    static SCAN_READINGS_PATH = 'readings.json'
 
     generateNextID() {
         const nextID = (++this._scanID).toString()
         if (this.scanExists(nextID)) {
             throw new Error(`Scan '${nextID}' already exists`)
         }
-        this.scanIDs.add(nextID);
         return nextID;
     }
 
@@ -70,7 +84,7 @@ class ScanStore {
 
     static RETAINED_SCAN_FILES = ['preview.png', 'map.png', 'map.yaml', 'session.json', 'readings.json']
 
-    async processScan({archive, title, description}) {
+    async processScan({archive, title, description, username}) {
         const files = new AdmZip(archive).getEntries();
 
         const scanFileBuffers = new Map();
@@ -113,31 +127,34 @@ class ScanStore {
 
             // save new files
 
+
             for (const retainedFile of ScanStore.RETAINED_SCAN_FILES) {
                 const filePath = path.join(currentScanDir, retainedFile);
                 const fileData = scanFileBuffers.get(retainedFile);
                 await asyncfs.writeFile(filePath, fileData);
             }
 
-            this.addScanUnsafe({id:scanID, title, description});
+
+            this.addScanSession({id:scanID, uploader:username, title, description});
 
         } catch (e) {
             // del failed file
             await this.removeScanFromDisk(scanID);
             throw e;
+        } finally {
+            for (const buffer of scanFileBuffers.values()) {
+                buffer.dispose?.()
+            }
         }
         await this.saveData()
         return scanID;
     }
 
-    delScanUnsafe(id) {
-        this.scanIDs.delete(id);
-        this.scanMeta.delete(id);
-    }
 
-    addScanUnsafe({id, title, description}) {
+    addScanSession({id, title, description, uploader}) {
         const newScanMeta = {
             id,
+            uploader,
             title,
             description,
             time: Date.now(),
@@ -155,9 +172,10 @@ class ScanStore {
 
     async deleteScan(id) {
         try {
+
             await this.removeScanFromDisk(id)
-            void this.dataCache.remove(id)
-            this.delScanUnsafe(id)
+            void this.dataCache.delete(id)
+            this.scanMeta.delete(id)
             await this.saveData()
             return true
         } catch (e) {
@@ -168,7 +186,7 @@ class ScanStore {
     }
 
     scanExists(id) {
-        return id && this.scanIDs.has(id)
+        return id && this.scanMeta.has(id)
     }
 
     async removeScanFromDisk(id) {
@@ -177,39 +195,51 @@ class ScanStore {
 
     scanPath(id, resource) {
         if (!id) {
-            throw Error("[CRITICAL ERROR] attempt to remove scans dir")
+            throw Error("[CRITICAL ERROR] attempt to load scan with malformed id")
         }
         return path.join(this.scandir, id, resource || '')              // UNSAFE: never call directly w/o validation
-    }
-
-    async loadScanFromDisk(id) {
-        return await asyncfs.readFile(this.scanPath(id, ScanStore.SCAN_READINGS_PATH), "utf8")
-    }
-
-    async getScanData(id) {             // possibility to load from disk
-        if (this.scanExists(id)) {
-            let data = this.dataCache.get(id)
-            if (!data) {
-                try {
-                    data = await this.loadScanFromDisk(id)
-                } catch (e) {
-                    console.error(`Failed to load scan ${id}`)
-                    console.error(e)
-                    return null
-                }
-                this.dataCache.insert(id, data, this.ttl)
-                return data
-            }
-        }
-
-        return null
-
     }
 
     getScanInfo(id) {
         const data = this.scanMeta.get(id)
         if (!data) return null
         return data
+    }
+
+    getCacheResource(id, resource) {
+        const cacheEntry = this.dataCache.get(id)
+        if (!cacheEntry || !(resource in cacheEntry)) {
+            return null
+        }
+        return cacheEntry[resource]
+    }
+
+    async loadResourceAndCache(id, resource) {
+        const scanPath = this.scanPath(id, resource);
+        const item = await asyncfs.readFile(scanPath);
+        if (this.dataCache.has(id)) {
+            this.dataCache.get(id)[resource] = item;
+        } else {
+            this.dataCache.set(id, {[resource]:item})
+        }
+        return item
+    }
+
+    async getResource(id, resource) {
+        let item = this.getCacheResource(id, resource)
+        if (item) {
+            console.log(`[cacher] from cache #${id}/${resource}`)
+            return item
+        } else {
+            try {
+                console.log(`[cacher] from disk #${id}/${resource}`)
+                item = await this.loadResourceAndCache(id, resource)
+                return item
+            } catch (err) {
+                console.error(err);
+                throw err
+            }
+        }
     }
 }
 
