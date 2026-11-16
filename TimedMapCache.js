@@ -1,7 +1,8 @@
 class TimedMapCache {
-    constructor(purgeInterval) {
+    constructor({ttl, onpurge}) {
         this.items = new Map()
-        this.purgeInterval = purgeInterval // invoke getter
+        this.onpurge = onpurge;
+        this.purgeInterval = ttl // invoke getter
     }
 
     get purgeInterval() {
@@ -65,6 +66,7 @@ class TimedMapCache {
     }
 
     purge() {
+        this.onpurge()
         for (const [item,key] of this.items.entries()) {
             if (this.isExpired(item)) {
                 this.items.delete(key)

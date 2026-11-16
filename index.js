@@ -40,7 +40,7 @@ const scanStore = new ScanStore({
   maxscans: 20
 });
 
-const tokenManager = new TokenManager({tokenLifespan: units.HOURS(6) });
+const tokenManager = new TokenManager({ttl: units.HOURS(6) });
 
 app.use((require("cors"))());
 app.use((require("cookie-parser"))());
@@ -159,9 +159,13 @@ const loginPostEndpoint = (req, res) =>  {
 
   if (verification.valid) {
     res.cookie('_token', verification.token, cookieOptions)
-    res.redirect(replaceURLRoot(req.originalUrl, "/manage"))
+    const destURL = replaceURLRoot(req.originalUrl, "/manage")
+    if (destURL === '/manage') {
+      res.redirect('/');
+    } else {
+      res.redirect(destURL)
+    }
   } else {
-
     res.redirect(req.originalUrl + "?failed=1")
   }
 }
@@ -306,7 +310,7 @@ app.post('/manage/upload', uploadScan.single('file'), async (req, res) => {
     return res.status(500).send(error.message)
   }
 
-  res.status(201).redirect(`/scan/${newID}`)
+  res.status(201).redirect(`/scan/${newID}/#new`)
 });
 
 
@@ -337,7 +341,7 @@ app.post('/manage/:id/edit', async (req, res) => {
 });
 
 app.get('*a', (req, res) => {
-  res.redirect('/')
+  res.status(404).send()
 });
 
 

@@ -2,8 +2,8 @@ const crypto = require('crypto');
 const TimedMapCache = require('./TimedMapCache')
 
 class TokenManager {
-  constructor({tokenLifespan}) {
-    this.timedCache = new TimedMapCache(tokenLifespan);
+  constructor({ttl}) {
+    this.timedCache = new TimedMapCache({ttl, onpurge: () => console.log('purged tokens')});
   }
 
   [Symbol.iterator]() {
@@ -15,6 +15,7 @@ class TokenManager {
   }
 
   generateToken(user) {
+    console.log(user, 'logged in')
     const uuid = crypto.randomUUID({disableEntropyCache:true})
     const encoded_uuid = Buffer.from(uuid, "utf8").toString("base64");
 

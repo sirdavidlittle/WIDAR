@@ -306,6 +306,10 @@ span.uploader {
     height: calc(100% - .6em);
 }
 
+.about-us {
+    text-align: center;
+}
+
 .scan-id {
     position: absolute;
     top: var(--spacing-xs);
