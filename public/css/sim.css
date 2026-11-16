@@ -1,17 +1,64 @@
+.sim-copyright {
+    bottom: 0px;
+    margin: .5em;
+    text-shadow: 0 0 4px #585858d4;
+}
+
+/*
+    color: #deaded;
+    color: #beefed;
+*/
+
+.offscreen-heatmap {
+    position: absolute!important;
+    visibility: hidden!important;
+    z-index: 0;
+    user-select: none;
+}
+
+.fullscreen .rotation {
+    margin: 2em;
+}
+
+.fullscreen .rotation-circle {
+    width: 130px;
+    height: 130px;
+}
+
+.hidden.sim-error-banner {
+    display: none;
+}
+
+.sim-error-banner {
+    font-weight: 450;
+    width: 100%;
+    background: #00000078;
+    text-align: center;
+    font-variant: small-caps;
+    font-size: 2em;
+    padding: .5em;
+    top: calc(50% - 2em);
+    box-shadow: 0 0 9px #0000009e;
+    position: absolute;
+    color: red;
+}
+
+
+.fullscreen .sim-tray button {
+    height: 1.65em;
+    margin-inline:.25em;
+}
 
 .rotation-circle {
-    width: 120px;
-    height: 120px;
-    border: 3px solid #888;
+    background: radial-gradient(transparent, #ff000040);
+    width: 110px;
+    height: 110px;
+    border: 3px solid #383a3f;
     border-radius: 50%;
     position: relative;
     cursor: grab;
     user-select: none;
     touch-action: none;
-}
-
-.rotation-input {
-    display: none;
 }
 
 .rotation-circle:active {
@@ -43,22 +90,20 @@
 }
 
 .sim-wifi-settings {
-    z-index: 1000;
+    z-index: 100;
+    margin-top: .5em;
+    justify-self: center;
     background: rgba(20, 24, 30, 0.85);
     color: rgb(255, 255, 255);
     padding: 6px 10px;
     border-radius: 6px;
-    font-family: system-ui, sans-serif;
     font-size: 13px;
     display: flex;
     gap: 8px;
     align-items: center;
-    position: fixed;
 }
 
-button.sim-reset {
-    background: rgb(59, 130, 246);
-    color: rgb(255, 255, 255);
+button.sim {
     border-width: medium;
     border-style: none;
     border-color: currentcolor;
@@ -66,6 +111,16 @@ button.sim-reset {
     border-radius: 4px;
     padding: 4px 10px;
     cursor: pointer;
+}
+
+button.sim-reset {
+    background: rgb(38 147 0);
+    color: rgb(255, 255, 255);
+}
+
+button.sim-sim-toggle {
+    background: rgb(59, 130, 246);
+    color: rgb(255, 255, 255);
 }
 
 .sim-wifi-selector {
@@ -88,6 +143,7 @@ button.sim-reset {
 
 :root {
     --fscreen-alt: #333333;
+    --rotator-size: 130px;
     --fscreen-border: #4e4e4e;
 }
 
@@ -99,29 +155,43 @@ button.sim-reset {
 .sim-tray .akar-icon:active {
     transform: scale(85%);
 }
-.sim-canvas {
+.sim-wrapper {
     box-sizing:content-box;
     border-radius: var(--border-radius);
     height: auto; /* maintain aspect ratio if width is constrained by CSS */
-    background-size: 100%;
-    cursor: grab;
+    background-size: cover;
+    background-position: 0 0;
     background-repeat: no-repeat;
     border:1px solid var(--bg-color);
 }
 
+.sim-overlay-item {
+    font-family: system-ui, sans-serif;
+    position: absolute;
+}
 
+.fullscreen .sim-overlay {
+    box-shadow: none;
+}
 
+.sim-overlay {
+    user-select: none!important;
+    box-shadow: inset 0 0 7px 2px #000000b5;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: clip;
+    z-index: 1000;
+}
 
 .sim-main.fullscreen {
-
     background: var(--bg-color);
-
     display: flex;
-
     flex-direction: column;
 }
 
 .fullscreen .sim-wrap {
+    position: relative;
     display: flex;
     height: -webkit-fill-available;
     justify-content: center;
@@ -140,7 +210,7 @@ button.sim-reset {
 
     height: fit-content;
 
-    padding: .75em;
+    padding: 0.75em;
 
     margin: 0;
 }
@@ -152,6 +222,19 @@ button.sim-reset {
     height: -webkit-fill-available;
     z-index: 300;
     border-radius: 0;
+}
+
+.sim-description {
+    display: none;
+}
+
+.fullscreen .sim-description {
+    display: block;
+    font-family: system-ui, sans-serif;
+}
+
+.sim-overlay.hidden * {
+    display: none !important;
 }
 
 .sim-settings.hidden {
@@ -180,6 +263,7 @@ button.sim-reset {
 
 .sim-wrap {
     margin: .5em;
+    position: relative;
 }
 
 .widar-info {
@@ -187,12 +271,38 @@ button.sim-reset {
     min-width: 250px;
 }
 
+.rotation {
+    margin:1em;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+}
+
+.rotation-input {
+
+    appearance: none;
+
+    line-height: 1.5em;
+
+    background: rgba(20, 24, 30, 0.85);
+
+    color: rgb(255, 255, 255);
+
+    border-radius: 1em;
+
+    text-align: center;
+
+    border: 2px solid #5d5d5d;
+}
+
+
 .widar-title {
     font-size: 2rem;
     font-weight: bold;
     text-transform: capitalize;
     margin-bottom: var(--spacing-xs);
 }
+
 
 .widar-description {
     color: var(--text-muted);

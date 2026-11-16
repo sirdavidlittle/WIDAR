@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
+<head>
     <meta charset="utf-8">
     <title>WIDAR :: Scan <%- scan.id %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,149 +9,193 @@
     <link rel="stylesheet" href="/css/ico.css">
     <link rel="icon" href="/img/favicon.ico">
     <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
-  </head>
-  <body>
-  <header>
+</head>
+<body>
+<header>
     <div class="title widar">
-      <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
-      <p class="description">A Helpful handheld WiFi-Radar</p>
+        <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+        <p class="description">A Helpful handheld WiFi-Radar</p>
     </div>
     <!--break-->
     <nav>
         <a href="/">Home</a>
     </nav>
-  </header>
-  <main>
-  <section class="widar-area">
-    <div class="widar-info">
-      <p class="widar-title"> <%= scan.title%></p>
-      <p class="widar-description"> <%= scan.description%></p>
-      <div class="scan-dates">
-        <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
-        <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
-        <span>uploaded by <b><%= scan.uploader%></b></span>
-      </div>
-    </div>
-    <div class="sim-area">
-      <aside class="sim-settings" id="sim_settings">
-        <div class="sim-wifi-settings" id="sim_wifi_settings">
-          <label for="sim_wifi_selector">Network</label>
-          <select class="sim-wifi-selector" id="sim_wifi_selector">
-            <option value="ALL">All Wi-Fi Networks (Peak RSSI)</option>
-            <optgroup label="By SSID Name" id="wifi_ssid"></optgroup>
-            <optgroup label="By MAC Address" id="wifi_bssid"></optgroup>
-          </select>
-          <button class="sim-reset" onclick="sim_reset_position()">Reset View</button>
-      <!-- todo -->
-          <div class="rotation-circle" id="rotation_circle">
-            <div class="rotation-indicator" id="rotation_indicator"></div>
-            <div class="rotation-center"></div>
-          </div>
+</header>
+<main>
+    <section class="widar-area">
+        <div class="widar-info">
+            <p class="widar-title"> <%= scan.title %></p>
+            <p class="widar-description"> <%= scan.description %></p>
+            <div class="scan-dates">
+                <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
+                <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
+                <span>uploaded by <b><%= scan.uploader %></b></span>
+            </div>
+        </div>
+        <div class="sim-area">
+            <div class="sim-main" id="sim_frame">
+                <div class="sim-tray">
+                    <button class="akar-icon fullscreen" id="fullscreen_request" onclick="sim_toggle_fullscreen(this)"
+                            title="Fullscreen"></button>
+                    <button class="akar-icon home" onclick="sim_reset_position()" title="Home"></button>
+                    <button class="akar-icon save" onclick="sim_save_canvas()" title="Save Image"></button>
+                    <button class="akar-icon settings" onclick="sim_toggle_settings()" title="Settings"></button>
+                    <b class="sim-description"><%= scan.title %></b>
+                </div>
+                <div class="sim-wrap">
+                    <section id="sim_overlay" tabindex="0" class="sim-overlay">
+                        <div class="sim-error-banner hidden" id="sim_error"></div>
+                        <div class="sim-wifi-settings sim-overlay-item" id="sim_wifi_settings">
+                            <label for="sim_wifi_selector">Network</label>
+                            <select class="sim-wifi-selector" id="sim_wifi_selector">
+                                <option value="ALL">All Wi-Fi Networks (Peak RSSI)</option>
+                                <optgroup label="By SSID Name" id="wifi_ssid"></optgroup>
+                                <optgroup label="By MAC Address" id="wifi_bssid"></optgroup>
+                            </select>
+                            <button class="sim sim-reset" onclick="sim_reset_position()">Reset View</button>
+                            <button class="sim sim-toggle" onclick="sim_toggle_labels(this)">Hide Labels</button>
+                        </div>
+                        <div class="rotation sim-overlay-item">
+                            <div class="rotation-circle" id="rotation_circle">
+                            <div class="rotation-indicator" id="rotation_indicator"></div>
+                            <div class="rotation-center"></div>
+                        </div>
+                        <input type="number" class="rotation-input" id="rotation_input" value="0" min="0" max="359">
+                        </div>
 
-          <input type="number" class="rotation-input" id="rotation_input" value="0" min="0" max="359">
+                        <span class="sim-overlay-item sim-copyright">WIDAR ® 2026</span>
+                    </section>
+
+                    <div id="sim_wrapper" style="background-image:url(<%- previewImage(scan.id) %>);" class="sim-wrapper">
+                    </div>
+                </div>
+            </div>
         </div>
-      </aside>
-      <div class="sim-main" id="sim_frame">
-        <div class="sim-tray">
-          <button class="akar-icon fullscreen" onclick="sim_toggle_fullscreen(this)" title="Fullscreen"></button>
-          <button class="akar-icon home" onclick="sim_reset_position()" title="Home"></button>
-          <button class="akar-icon settings" onclick="sim_toggle_settings()" title="Settings"></button>
-        </div>
-        <div class="sim-wrap">
-       <canvas style="background-image:url(<%- previewImage(scan.id) %>);" width="600px" height="600px" class="sim-canvas" id="sim"></canvas>
-        </div>
-      </div>
-    </div>
-  </section>
-  </main>
-  <footer>WIDAR ® 2026</footer>
-  <script defer src="https://cdn.jsdelivr.net/npm/simpleheat@0.4.0/simpleheat.js"></script>
-  <script defer type="module" src="/js/widar_sim.js"></script>
-  <script>
-    const sim_settings = document.getElementById('sim_settings');
+    </section>
+</main>
+<footer>WIDAR ® 2026</footer>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.1/heatmap.js"></script>
+<script defer type="module" src="/js/widar.js"></script>
+<script>
+    const fullscreenBtn = document.getElementById('fullscreen_request');
+    const overlay = document.getElementById('sim_overlay');
+    const rotationCircle = document.getElementById('rotation_circle');
+    const rotationIndicator = document.getElementById('rotation_indicator');
     const sim_frame = document.getElementById('sim_frame');
+    const rotationValue = document.getElementById('rotation_input');
+    window.rotatorDragging = false
 
-    document.onfullscreenchange = () => {
-      sim_frame.classList.toggle('fullscreen');
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+            sim_exit_fullscreen()
+        }
+    })
+
+    function sim_exit_fullscreen() {
+        sim_frame.classList.remove('fullscreen')
+        fullscreenBtn.classList.replace('smallscreen', 'fullscreen');
+
+        if (window.set_fullscreen) {
+            set_fullscreen(false);
+        }
     }
+
+
+    function sim_toggle_fullscreen() {
+        if (document.fullscreenElement) {
+            document.exitFullscreen()
+            sim_exit_fullscreen()
+        } else {
+            sim_frame.requestFullscreen();
+            sim_frame.classList.add('fullscreen')
+            fullscreenBtn.classList.replace('fullscreen', 'smallscreen');
+        }
+        if (window.set_fullscreen) {
+            set_fullscreen(true);
+        }
+    }
+
+    let labelsOn = true
 
     function sim_toggle_settings() {
-      sim_settings.classList.toggle('hidden');
+        overlay.classList.toggle('hidden');
     }
 
-    function sim_toggle_fullscreen(elem)
-    {
-      if (document.fullscreenElement) {
-        document.exitFullscreen()
-        elem.classList.toggle('smallscreen fullscreen');
-      } else {
-        sim_frame.requestFullscreen();
-        elem.classList.replace('fullscreen', 'smallscreen');
-      }
+    function sim_toggle_labels(e) {
+        e.textContent = (labelsOn ? 'Show Labels' : 'Hide Labels')
+        labelsOn = !labelsOn
+        if (window.set_label_visbility) {
+            set_label_visbility(labelsOn)
+        }
+    }
+
+    function sim_save_canvas() {
+        if (window.take_snapshot) {
+            take_snapshot()
+        }
     }
 
     function sim_reset_position() {
-      if (window.sim_reset_callback) {
-        sim_reset_callback();
-      }
-      sim_change_rotation(0, 0)
+        sim_change_rotation(0, 0)
+        if (window.reset) {
+            reset(false);
+        }
     }
 
-    const rotationCircle = document.getElementById('rotation_circle');
-    const rotationIndicator = document.getElementById('rotation_indicator');
-    const rotationValue = document.getElementById('rotation_input');
+    function sim_set_rotation_controls(rotationDeg) {
+        // inverted
+        rotationIndicator.style.transform = `translateX(-50%) rotate(${-rotationDeg}deg)`;
+        rotationValue.value = -Math.round(rotationDeg);
 
-    let rotation = 0;
-    let dragging = false;
-
+    }
 
     function sim_change_rotation(rotationRad, rotationDeg) {
-      rotationIndicator.style.transform = `translateX(-50%) rotate(${rotationRad}rad)`;
-
-      if (window.sim_rotation_callback) {
-        sim_rotation_callback(rotationRad)
-      }
-
-      rotationValue.value = Math.round(rotationDeg);
+        sim_set_rotation_controls(rotationDeg);
+        if (window.set_rotation) {
+            set_rotation(rotationRad)
+        }
     }
 
-    function updateRotationFromMouse(e) {
-      const rect = rotationCircle.getBoundingClientRect();
+    function set_rotation_from_mouse(e) {
+        const rect = rotationCircle.getBoundingClientRect();
 
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-      const dx = e.clientX - centerX;
-      const dy = e.clientY - centerY;
+        const dx = e.clientX - centerX;
+        const dy = e.clientY - centerY;
 
-      const angle = Math.atan2(dx, -dy);
+        const angle = -Math.atan2(dx, -dy);
 
-      sim_change_rotation(angle, angle * (180 / Math.PI));
+        sim_change_rotation(angle, angle * (180 / Math.PI));
     }
 
     rotationCircle.addEventListener('pointerdown', e => {
-      dragging = true;
-      rotationCircle.setPointerCapture(e.pointerId);
-      updateRotationFromMouse(e);
+        e.stopPropagation()
+        window.rotatorDragging = true;
+        rotationCircle.setPointerCapture(e.pointerId);
+        set_rotation_from_mouse(e);
     });
 
     rotationCircle.addEventListener('pointermove', e => {
-      if (dragging) updateRotationFromMouse(e);
+        if (window.rotatorDragging) set_rotation_from_mouse(e);
     });
 
-    rotationCircle.addEventListener('pointerup', () => {
-      dragging = false;
+    rotationCircle.addEventListener('pointerup', e => {
+        window.rotatorDragging = false;
     });
 
-    rotationCircle.addEventListener('pointercancel', () => {
-      dragging = false;
+    rotationCircle.addEventListener('pointercancel', e => {
+        window.rotatorDragging = false;
     });
 
     rotationValue.addEventListener('input', () => {
-      const rotationDeg = Number(rotationValue.value) || 0
-      const rotationRad = rotationDeg * (Math.PI / 180)
-      sim_change_rotation(rotationRad, rotationDeg);
+        const rotationDeg = Number(rotationValue.value) || 0
+        const rotationRad = rotationDeg * (Math.PI / 180)
+        sim_change_rotation(rotationRad, rotationDeg);
     });
-  </script>
-  </body>
+
+
+</script>
+</body>
 </html>

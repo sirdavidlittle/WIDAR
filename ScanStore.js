@@ -146,7 +146,14 @@ class ScanStore {
                 buffer.dispose?.()
             }
         }
+        console.log(`uploaded scan #${scanID}`)
         await this.saveData()
+
+        try {
+            this.loadResourceAndCache(scanID, 'readings.json')
+        } catch (err) {
+            console.log(err);
+        }
         return scanID;
     }
 
