@@ -1,0 +1,3 @@
+[submodule "widar-device"]
+	path = widar-device
+	url = ./widar-device
