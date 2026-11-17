@@ -1,0 +1,106 @@
+.directory {
+    margin: 0;
+    line-height:1.3rem;
+    font-family: monospace;
+    width: fit-content;
+    background-color: var(--border-color);
+    padding: .75em;
+    border-radius: var(--border-radius);
+}
+
+.directory ul, .directory, .directory li {
+    padding-left: 1em;
+}
+
+.directory li::marker {
+    content: "├";
+    font-size: 1.2rem;
+}
+
+summary.example-upload {
+    user-select: none;
+}
+
+.directory li:last-child::marker {
+    content: "┕";
+}
+
+.upload-file {
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.upload-chosen {
+    color: var(--accent-color);
+    font-style: italic;
+    font-size: 1.25rem;
+}
+
+.upload-card {
+    width: fit-content;
+    border: 3px dashed var(--color-seperator);
+    aspect-ratio: 1;
+    border-radius: 1em;
+    background: var(--header-bg);
+    margin-block: 1em;
+    line-height: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    padding: .75em;
+    cursor:pointer;
+    transition: 200ms ease color, border-color;
+}
+
+.upload-area {
+    display: flex;
+}
+
+.form.upload {
+    max-width: 700px;
+}
+
+.upload-options {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 3em;
+    align-items: center;
+}
+
+.upload-card:hover {
+    color: var(--text-primary);
+    border-color: #797979;
+}
+
+.upload-button {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Base dialog box styling */
+dialog {
+    background: var(--border-color)!important;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    max-width: 500px;
+    margin: auto;
+    width: 90%;
+    background: #ffffff;
+    color: #1a1a1a;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Background overlay (only active when opened via .showModal()) */
+dialog::backdrop {
+    background-color: rgb(146 146 146 / 50%);
+    backdrop-filter: blur(3px);
+}
+
+/* Optional: Prevent background page scrolling while open */
+body:has(dialog[open]) {
+    overflow: hidden;
+}

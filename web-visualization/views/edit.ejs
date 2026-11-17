@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title>WIDAR :: Edit Scan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/ico.css">
+    <link rel="stylesheet" href="/css/upload.css">
+    <link rel="icon" href="/img/favicon.ico">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
+</head>
+<body>
+<header>
+    <div class="title widar">
+        <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+        <p class="description">A Helpful handheld WiFi-Radar</p>
+    </div>
+    <nav>
+        <a href="/">Home <span class="akar-icon home"></span></a>
+        <a href="/manage/upload">Upload a new Scan <span class="akar-icon upload"></span></a>
+    </nav>
+</header>
+<div class="title-header">
+    <h2>Editing Scan <span class="admin-username">#<%- scan.id %></span></h2>
+    <small><i><%= scan.title %></i></small>
+</div>
+<dialog id="delete-modal">
+    <h4>Are you Sure?</h4>
+    <div class="upload-options">
+    <button type="button" class="button open" command="close" commandfor="delete-modal">Cancel</button>
+    <button type="submit" form="delete-form" class="button evil">Delete<span class="akar-icon trash"></span></button>
+    </div>
+</dialog>
+<main>
+    <!-- corporate splash centered above login -->
+    <fieldset class="upload form">
+        <legend>Modify Scan</legend>
+        <form action="/manage/<%- scan.id %>/edit" method="POST">
+            <label class="login-item">
+                New Title
+                <input value="<%= scan.title %>" type="text" name="title" placeholder="new title">
+            </label>
+            <br>
+            <label class="login-item">
+                New Description
+                <textarea name="description" placeholder="new description"><%= scan.description %></textarea>
+            </label>
+            <div class="upload-options">
+                <button type="submit" class="button expand manage">Apply Changes <span class="akar-icon pencil"></span></button>
+                <a href="/" class="button open">Cancel</a>
+                <button type="button" command="show-modal" commandfor="delete-modal" class="button expand evil">Delete Scan <span class="akar-icon trash"></span></button>
+            </div>
+        </form>
+        <form method="POST" id="delete-form" action="/manage/<%- scan.id %>/delete"></form>
+    </fieldset>
+</main>
+
+<!-- content -->
+
+<footer>WIDAR ® 2026</footer>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>WIDAR :: Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/ico.css">
+    <link rel="icon" href="/img/favicon.ico">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
+  </head>
+  <body>
+    <header>
+      <div class="title widar">
+        <span class="banner">
+          <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+      </div>
+      <div class="login-path">
+      Login
+      <% if (destItems) { %>
+        <% for (const item of destItems) { %>
+          <span class="akar-icon arrow"></span> <%= item%>
+        <% } %>
+      <% } %>
+      </div>
+    </header>
+
+    <main>
+      <% if (failed) { %>
+        <h3 class="login-failed"> Login Failed </h3>
+      <% } %>
+
+    <fieldset class="login form">
+      <!-- corporate splash centered above login -->
+      <img src="/img/widar.jpg" width="170px">
+      <legend>Administrator Login</legend>
+      <form action="<%=destURL%>" method="POST">
+        <label class="login-item">
+          Username
+          <input required type="text" name="username" placeholder="username">
+        </label>
+        <br>
+        <label class="login-item">
+          Password
+          <input required type="password" name="password" placeholder="password">
+        </label>
+        <input type="submit">
+      </form>
+    </fieldset>
+    </main>
+    <footer>WIDAR ® 2026</footer>
+  </body>
+</html>

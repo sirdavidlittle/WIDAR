@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title>WIDAR :: Upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/ico.css">
+    <link rel="stylesheet" href="/css/upload.css">
+    <link rel="icon" href="/img/favicon.ico">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
+</head>
+<body>
+<header>
+    <div class="title widar">
+        <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+        <p class="description">A Helpful handheld WiFi-Radar</p>
+    </div>
+    <!--break-->
+    <nav>
+        <a href="/">Home <span class="akar-icon home"></span></a>
+        <a href="/logout">Logout <span class="akar-icon logout"></span></a>
+    </nav>
+</header>
+<div class="title-header">
+    <h2>Hello <span class="admin-username"><%= username %></span>,</h2>
+    <small>What would you like to upload today?</small>
+</div>
+<main>
+        <!-- corporate splash centered above login -->
+    <fieldset class="upload form">
+        <legend>Upload A Scan</legend>
+        <form action="/manage/upload" method="POST" enctype="multipart/form-data">
+            <label class="login-item">
+                Scan Title
+                <input required type="text" name="title" placeholder="title">
+            </label>
+            <br>
+            <label class="login-item">
+                Description
+                <textarea required name="description" placeholder="lorem ipsum..."></textarea>
+            </label>
+            <hr>
+            <p>Scan Files</p>
+                <small>Upload a .ZIP file of your WiDAR scan files</small>
+            <details>
+                <summary class="example-upload">Example</summary>
+                <div class="directory">
+                    <b>widar_scan.zip</b>
+                <ul>
+                    <li>map.pgm</li>
+                    <li>map.yaml</li>
+                    <li>wifi_readings.csv</li>
+                    <li>session.json</li>
+                </ul>
+                </div>
+            </details>
+            <div style="text-align: -webkit-center;">
+            <div class="upload-card" id="upload-card">
+                <p class="upload-type">Required Type: <b>.zip</b><p>
+               <div class="upload-button">
+                    <input required type="file" class="upload-file" id="file" accept=".zip" name="file" aria-label="Upload file"/>
+                    <label for="upload-file" id="upload-label" tabindex="0">Choose File<span class="akar-icon upload"></span>
+                    </label>
+                    <span class="upload-chosen" id="upload-chosen"></span>
+
+                </div>
+            </div>
+            </div>
+            <div class="upload-options">
+            <button type="submit">Upload<span class="akar-icon upload"></span></button>
+            <a class="button evil" href="/">Cancel</a>
+            </div>
+        </form>
+    </fieldset>
+</main>
+
+<!-- content -->
+
+<footer>WIDAR ® 2026</footer>
+<script>
+    /* Couresy of quackit.com */
+    const customFileInput = document.getElementById('file');
+    const fileChosenDisplay = document.getElementById('upload-chosen');
+    const fileUploadLabel = document.getElementById('upload-label');
+
+    document.getElementById('upload-card').addEventListener('click',
+        () => customFileInput.click()
+    );
+
+
+    if (customFileInput && fileChosenDisplay && fileUploadLabel) {
+        // Update display text when a file is chosen
+        customFileInput.addEventListener('change', function(){
+            fileChosenDisplay.textContent = this.files.length > 0 ? this.files[0].name : 'No file selected';
+        });
+
+        // Add keyboard accessibility: allow 'Enter' or 'Space' to trigger the file input
+        fileUploadLabel.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault(); // Prevent default button behavior
+                customFileInput.click(); // Programmatically click the hidden file input
+            }
+        });
+    }
+</script>
+</body>
+</html>

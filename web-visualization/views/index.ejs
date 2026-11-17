@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>WIDAR :: Home</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/ico.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Helpful handheld WiFi Radar">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');</style>
+  </head>
+  <body>
+    <header>
+      <div class="title widar">
+        <span class="banner"> <img width="80px" src="/img/widar_small.jpg" alt="WiDAR Logo"> WiDAR</span>
+        <p class="description">A Helpful handheld WiFi-Radar</p>
+      </div>
+      <!--break-->
+      <nav>
+        <a href="/about">Who Are We?</a>
+        <% if (!isAdmin) { %>
+          <a href="/login">Login</a>
+        <% } else { %>
+          <a href="/logout">Logout <span class="akar-icon logout"></span></a>
+          <a href="/manage/upload">Upload A Scan <span class="akar-icon upload"></span></a>
+        <% } %>
+      </nav>
+    </header>
+
+    <div class="title-header">
+    <% if (isAdmin) { %>
+        <h2>Welcome, <span class="admin-username"><%= username %></span></h2>
+        <small>Select a scan to explore or edit</small>
+    <% } else { %>
+        <h2>Welcome to <span class="admin-username">WiDAR</span></h2>
+        <small>Your explorative WiFi experience</small>
+    <% } %>
+    </div>
+
+
+    <% function make_scan_card(scan) { %>
+      <div class="scan-card">
+        <div class="scan-preview-background" style="background-image:url(<%- previewImage(scan.id) %>);">
+          <a href="scan/<%- scan.id %>/" class="scan-name"><%= scan.title%></a>
+          <span class="scan-desc"><%= scan.description%></span>
+        </div>
+
+        <div class="scan-dates">
+          <span class="relative time"><%= formatTimeRelative(scan.time) %></span>
+          <span class="absolute time"><%= formatTimeAbsolute(scan.time) %></span>
+          <span class="uploader">uploaded by <b><%= scan.uploader%></b></span>
+        </div>
+        <div class="scan-options">
+          <a class="scan-manage open button" href="/scan/<%- scan.id %>/">Explore <span class="akar-icon wifi"></span></a>
+            <% if (isAdmin) { %>
+         <div class="button-sep"></div>
+          <a class="scan-manage manage button" href="/manage/<%- scan.id %>/edit">Edit <span class="akar-icon pencil"></span></a>
+           <% } %>
+        </div>
+        <small class="scan-id">#<%-scan.id%></small>
+      </div>
+    <% } %>
+
+    <main>
+      <h4>WiDAR Scans</h4>
+      <!-- grid display -->
+      <section class="scan-cards">
+      <% for (const scan of scans) { %>
+          <%- make_scan_card(scan) %>
+      <% } %>
+      </section>
+    </main>
+    <footer>WIDAR ® 2026</footer>
+  </body>
+</html>
