@@ -1,3 +1,4 @@
 [submodule "widar-device"]
 	path = widar-device
 	url = https://github.com/sirdavidlittle/WIDAR-device.git
+	branch = master
